@@ -8,7 +8,7 @@ import {
   PlusCircle, 
   Settings, 
   TrendingUp,
-  Calendar,
+  Calendar as CalendarIcon,
   FileText
 } from 'lucide-react';
 import {
@@ -25,37 +25,37 @@ import {
 const menuItems = [
   {
     title: "Dashboard",
-    url: "#",
+    url: "/",
     icon: Home,
   },
   {
     title: "Add Trade",
-    url: "#",
+    url: "/add-trade",
     icon: PlusCircle,
   },
   {
     title: "Trade Log",
-    url: "#",
+    url: "/trade-log",
     icon: BookOpen,
   },
   {
     title: "Analytics",
-    url: "#",
+    url: "/analytics",
     icon: BarChart3,
   },
   {
     title: "Performance",
-    url: "#",
+    url: "/performance",
     icon: TrendingUp,
   },
   {
     title: "Calendar",
-    url: "#",
-    icon: Calendar,
+    url: "/calendar",
+    icon: CalendarIcon,
   },
   {
     title: "Reports",
-    url: "#",
+    url: "/reports",
     icon: FileText,
   },
 ];
