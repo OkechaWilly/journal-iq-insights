@@ -1,23 +1,13 @@
 
 import React from 'react';
 import { Dashboard } from '@/components/Dashboard';
-import { Sidebar } from '@/components/Sidebar';
-import { Header } from '@/components/Header';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { Layout } from '@/components/Layout';
 
 const Index = () => {
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
-        <Sidebar />
-        <div className="flex-1 flex flex-col">
-          <Header />
-          <main className="flex-1 p-6">
-            <Dashboard />
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+    <Layout>
+      <Dashboard />
+    </Layout>
   );
 };
 

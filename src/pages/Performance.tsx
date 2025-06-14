@@ -1,5 +1,5 @@
-
-import React, { useState } from "react";
+import React from "react";
+import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,190 +49,192 @@ const Performance = () => {
   const totalReturn = ((currentBalance - initialBalance) / initialBalance) * 100;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Performance</h2>
-          <p className="text-gray-600">Track your equity curve, statistics, and performance over time.</p>
+    <Layout>
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Performance</h2>
+            <p className="text-gray-600">Track your equity curve, statistics, and performance over time.</p>
+          </div>
+          <div className="flex gap-2">
+            <Select value={timeframe} onValueChange={setTimeframe}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1m">1 Month</SelectItem>
+                <SelectItem value="3m">3 Months</SelectItem>
+                <SelectItem value="6m">6 Months</SelectItem>
+                <SelectItem value="1y">1 Year</SelectItem>
+                <SelectItem value="all">All Time</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
+              <BarChart3 className="w-4 h-4" />
+              Export Data
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Select value={timeframe} onValueChange={setTimeframe}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1m">1 Month</SelectItem>
-              <SelectItem value="3m">3 Months</SelectItem>
-              <SelectItem value="6m">6 Months</SelectItem>
-              <SelectItem value="1y">1 Year</SelectItem>
-              <SelectItem value="all">All Time</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
-            <BarChart3 className="w-4 h-4" />
-            Export Data
-          </Button>
+
+        {/* Performance Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Account Balance</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${currentBalance.toLocaleString()}</div>
+              <p className="text-xs text-green-600 mt-1">
+                +${(currentBalance - initialBalance).toLocaleString()} ({totalReturn.toFixed(1)}%)
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Monthly Return</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">+3.4%</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                June 2024
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Best Month</CardTitle>
+              <Calendar className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">+7.2%</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                March 2024
+              </p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Performance Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Account Balance</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${currentBalance.toLocaleString()}</div>
-            <p className="text-xs text-green-600 mt-1">
-              +${(currentBalance - initialBalance).toLocaleString()} ({totalReturn.toFixed(1)}%)
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Return</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">+3.4%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              June 2024
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Best Month</CardTitle>
-            <Calendar className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">+7.2%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              March 2024
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Equity Curve */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Equity Curve</CardTitle>
-          <CardDescription>Your account balance progression over time</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={equityCurveData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip 
-                formatter={(value: any) => [`$${value.toLocaleString()}`, 'Balance']}
-                labelFormatter={(label) => `Date: ${label}`}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="balance" 
-                stroke="#3b82f6" 
-                fill="#3b82f6" 
-                fillOpacity={0.1}
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Performance Metrics & Monthly Returns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Equity Curve */}
         <Card>
           <CardHeader>
-            <CardTitle>Performance Metrics</CardTitle>
-            <CardDescription>Key statistical measures of your trading performance</CardDescription>
+            <CardTitle>Equity Curve</CardTitle>
+            <CardDescription>Your account balance progression over time</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {performanceMetrics.map((metric, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="font-medium text-gray-700">{metric.label}</span>
-                  <div className="text-right">
-                    <div className="font-bold text-lg">{metric.value}</div>
-                    <Badge 
-                      variant="outline" 
-                      className={metric.positive ? "text-green-600 border-green-200" : "text-red-600 border-red-200"}
-                    >
-                      {metric.change}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Returns</CardTitle>
-            <CardDescription>Month-by-month return percentage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyReturns}>
+            <ResponsiveContainer width="100%" height={400}>
+              <AreaChart data={equityCurveData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip 
-                  formatter={(value: any) => [`${value}%`, 'Return']}
-                  labelFormatter={(label) => `Month: ${label}`}
+                  formatter={(value: any) => [`$${value.toLocaleString()}`, 'Balance']}
+                  labelFormatter={(label) => `Date: ${label}`}
                 />
-                <Line 
+                <Area 
                   type="monotone" 
-                  dataKey="return" 
-                  stroke="#10b981" 
-                  strokeWidth={3}
-                  dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }}
+                  dataKey="balance" 
+                  stroke="#3b82f6" 
+                  fill="#3b82f6" 
+                  fillOpacity={0.1}
+                  strokeWidth={2}
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Risk Metrics */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Risk Analysis</CardTitle>
-          <CardDescription>Understand your risk exposure and management</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="text-center p-4 border rounded-lg">
-              <div className="text-sm text-gray-600">Value at Risk (VaR)</div>
-              <div className="text-2xl font-bold text-red-600">-2.8%</div>
-              <div className="text-xs text-gray-500">95% confidence</div>
+        {/* Performance Metrics & Monthly Returns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance Metrics</CardTitle>
+              <CardDescription>Key statistical measures of your trading performance</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {performanceMetrics.map((metric, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-gray-700">{metric.label}</span>
+                    <div className="text-right">
+                      <div className="font-bold text-lg">{metric.value}</div>
+                      <Badge 
+                        variant="outline" 
+                        className={metric.positive ? "text-green-600 border-green-200" : "text-red-600 border-red-200"}
+                      >
+                        {metric.change}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Monthly Returns</CardTitle>
+              <CardDescription>Month-by-month return percentage</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={monthlyReturns}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value: any) => [`${value}%`, 'Return']}
+                    labelFormatter={(label) => `Month: ${label}`}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="return" 
+                    stroke="#10b981" 
+                    strokeWidth={3}
+                    dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Risk Metrics */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Risk Analysis</CardTitle>
+            <CardDescription>Understand your risk exposure and management</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="text-center p-4 border rounded-lg">
+                <div className="text-sm text-gray-600">Value at Risk (VaR)</div>
+                <div className="text-2xl font-bold text-red-600">-2.8%</div>
+                <div className="text-xs text-gray-500">95% confidence</div>
+              </div>
+              <div className="text-center p-4 border rounded-lg">
+                <div className="text-sm text-gray-600">Beta</div>
+                <div className="text-2xl font-bold text-blue-600">0.72</div>
+                <div className="text-xs text-gray-500">vs S&P 500</div>
+              </div>
+              <div className="text-center p-4 border rounded-lg">
+                <div className="text-sm text-gray-600">Volatility</div>
+                <div className="text-2xl font-bold text-orange-600">12.4%</div>
+                <div className="text-xs text-gray-500">Annualized</div>
+              </div>
+              <div className="text-center p-4 border rounded-lg">
+                <div className="text-sm text-gray-600">Correlation</div>
+                <div className="text-2xl font-bold text-purple-600">0.68</div>
+                <div className="text-xs text-gray-500">Market correlation</div>
+              </div>
             </div>
-            <div className="text-center p-4 border rounded-lg">
-              <div className="text-sm text-gray-600">Beta</div>
-              <div className="text-2xl font-bold text-blue-600">0.72</div>
-              <div className="text-xs text-gray-500">vs S&P 500</div>
-            </div>
-            <div className="text-center p-4 border rounded-lg">
-              <div className="text-sm text-gray-600">Volatility</div>
-              <div className="text-2xl font-bold text-orange-600">12.4%</div>
-              <div className="text-xs text-gray-500">Annualized</div>
-            </div>
-            <div className="text-center p-4 border rounded-lg">
-              <div className="text-sm text-gray-600">Correlation</div>
-              <div className="text-2xl font-bold text-purple-600">0.68</div>
-              <div className="text-xs text-gray-500">Market correlation</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Layout>
   );
 };
 

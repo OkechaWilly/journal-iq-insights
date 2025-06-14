@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   BarChart3, 
   BookOpen, 
@@ -63,12 +64,14 @@ const menuItems = [
 const bottomItems = [
   {
     title: "Settings",
-    url: "#",
+    url: "/settings",
     icon: Settings,
   },
 ];
 
 export const Sidebar = () => {
+  const location = useLocation();
+
   return (
     <SidebarContainer className="border-r border-gray-200">
       <SidebarContent className="bg-white">
@@ -78,11 +81,11 @@ export const Sidebar = () => {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                    <a href={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg">
+                  <SidebarMenuButton asChild className={`hover:bg-blue-50 hover:text-blue-600 transition-colors ${location.pathname === item.url ? 'bg-blue-50 text-blue-600 font-medium' : ''}`}>
+                    <Link to={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg">
                       <item.icon className="w-4 h-4" />
                       <span className="font-medium">{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -95,11 +98,11 @@ export const Sidebar = () => {
             <SidebarMenu>
               {bottomItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="hover:bg-gray-100 transition-colors">
-                    <a href={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg">
+                  <SidebarMenuButton asChild className={`hover:bg-gray-100 transition-colors ${location.pathname === item.url ? 'bg-gray-100 font-medium' : ''}`}>
+                    <Link to={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg">
                       <item.icon className="w-4 h-4" />
                       <span className="font-medium">{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
