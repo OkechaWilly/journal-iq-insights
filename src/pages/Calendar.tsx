@@ -7,30 +7,136 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, addMonths, subMonths } from "date-fns";
 import { Layout } from '@/components/Layout';
+import { Link } from 'react-router-dom';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // Mock trading data with more comprehensive daily performance
-  const tradingData = {
-    "2024-06-01": { pnl: 1650, trades: 4, winRate: 100 },
-    "2024-06-02": { pnl: 2090, trades: 4, winRate: 50 },
-    "2024-06-03": { pnl: 2500, trades: 2, winRate: 100 },
-    "2024-06-06": { pnl: 2720, trades: 2, winRate: 100 },
-    "2024-06-07": { pnl: 3240, trades: 3, winRate: 100 },
-    "2024-06-08": { pnl: 1800, trades: 2, winRate: 100 },
-    "2024-06-09": { pnl: -1420, trades: 4, winRate: 0 },
-    "2024-06-10": { pnl: 131, trades: 7, winRate: 14.29 },
-    "2024-06-13": { pnl: 1850, trades: 4, winRate: 100 },
-    "2024-06-14": { pnl: -356, trades: 3, winRate: 0 },
-    "2024-06-15": { pnl: 2090, trades: 4, winRate: 100 },
-    "2024-06-16": { pnl: 427, trades: 6, winRate: 33.33 },
-    "2024-06-17": { pnl: 1250, trades: 3, winRate: 100 },
-    "2024-06-18": { pnl: -890, trades: 5, winRate: 20 },
-    "2024-06-19": { pnl: 3400, trades: 2, winRate: 100 },
-    "2024-06-20": { pnl: 1680, trades: 4, winRate: 75 },
+  // Trade data that matches the Trade Log structure
+  const trades = [
+    {
+      id: 1,
+      date: "2024-06-15",
+      symbol: "AAPL",
+      type: "Stock",
+      side: "Buy",
+      quantity: 100,
+      entryPrice: 150.25,
+      exitPrice: 155.75,
+      pnl: 550.00,
+      status: "Closed"
+    },
+    {
+      id: 2,
+      date: "2024-06-14",
+      symbol: "EURUSD",
+      type: "Forex",
+      side: "Sell",
+      quantity: 10000,
+      entryPrice: 1.0850,
+      exitPrice: 1.0820,
+      pnl: 300.00,
+      status: "Closed"
+    },
+    {
+      id: 3,
+      date: "2024-06-13",
+      symbol: "TSLA",
+      type: "Stock",
+      side: "Buy",
+      quantity: 50,
+      entryPrice: 240.00,
+      exitPrice: 235.00,
+      pnl: -250.00,
+      status: "Closed"
+    },
+    {
+      id: 4,
+      date: "2024-06-12",
+      symbol: "BTC/USD",
+      type: "Crypto",
+      side: "Buy",
+      quantity: 0.5,
+      entryPrice: 42000,
+      exitPrice: 43500,
+      pnl: 750.00,
+      status: "Closed"
+    },
+    {
+      id: 5,
+      date: "2024-06-11",
+      symbol: "GOOGL",
+      type: "Stock",
+      side: "Buy",
+      quantity: 25,
+      entryPrice: 2500.00,
+      exitPrice: 2580.00,
+      pnl: 2000.00,
+      status: "Closed"
+    },
+    {
+      id: 6,
+      date: "2024-06-10",
+      symbol: "MSFT",
+      type: "Stock",
+      side: "Sell",
+      quantity: 75,
+      entryPrice: 420.00,
+      exitPrice: 415.00,
+      pnl: 375.00,
+      status: "Closed"
+    },
+    {
+      id: 7,
+      date: "2024-06-09",
+      symbol: "AMZN",
+      type: "Stock",
+      side: "Buy",
+      quantity: 30,
+      entryPrice: 3200.00,
+      exitPrice: 3150.00,
+      pnl: -1500.00,
+      status: "Closed"
+    },
+    {
+      id: 8,
+      date: "2024-06-08",
+      symbol: "NVDA",
+      type: "Stock",
+      side: "Buy",
+      quantity: 40,
+      entryPrice: 900.00,
+      exitPrice: 920.00,
+      pnl: 800.00,
+      status: "Closed"
+    }
+  ];
+
+  // Transform trades data to daily summaries
+  const getDailyTradingData = () => {
+    const dailyData: { [key: string]: { pnl: number; trades: number; winRate: number } } = {};
+    
+    trades.forEach(trade => {
+      const dateKey = trade.date;
+      if (!dailyData[dateKey]) {
+        dailyData[dateKey] = { pnl: 0, trades: 0, winRate: 0 };
+      }
+      dailyData[dateKey].pnl += trade.pnl;
+      dailyData[dateKey].trades += 1;
+    });
+
+    // Calculate win rates
+    Object.keys(dailyData).forEach(dateKey => {
+      const dayTrades = trades.filter(trade => trade.date === dateKey);
+      const winningTrades = dayTrades.filter(trade => trade.pnl > 0).length;
+      dailyData[dateKey].winRate = dayTrades.length > 0 ? (winningTrades / dayTrades.length) * 100 : 0;
+    });
+
+    return dailyData;
   };
+
+  const tradingData = getDailyTradingData();
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -66,6 +172,10 @@ const Calendar = () => {
     setCurrentDate(direction === 'prev' ? subMonths(currentDate, 1) : addMonths(currentDate, 1));
   };
 
+  const navigateToCurrentMonth = () => {
+    setCurrentDate(new Date());
+  };
+
   const selectedDateData = tradingData[format(selectedDate, "yyyy-MM-dd")];
 
   return (
@@ -80,15 +190,19 @@ const Calendar = () => {
             <p className="text-gray-600">Track your daily trading performance and monthly statistics</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={navigateToCurrentMonth}>
               This month
             </Button>
-            <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4" />
-              Add Trade
+            <Button className="gap-2 bg-blue-600 hover:bg-blue-700" asChild>
+              <Link to="/add-trade">
+                <Plus className="w-4 h-4" />
+                Add Trade
+              </Link>
             </Button>
-            <Button variant="outline" size="icon">
-              <Settings className="w-4 h-4" />
+            <Button variant="outline" size="icon" asChild>
+              <Link to="/settings">
+                <Settings className="w-4 h-4" />
+              </Link>
             </Button>
           </div>
         </div>
@@ -112,7 +226,9 @@ const Calendar = () => {
                   </div>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <span>Monthly stats:</span>
-                    <span className="text-green-600 font-medium">{formatCurrency(monthlyStats.totalPnl)}</span>
+                    <span className={`font-medium ${monthlyStats.totalPnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(monthlyStats.totalPnl)}
+                    </span>
                     <span>{monthlyStats.tradingDays} days</span>
                   </div>
                 </div>
@@ -167,7 +283,7 @@ const Calendar = () => {
                                 {dayData.trades} trades
                               </div>
                               <div className="text-xs opacity-75">
-                                {dayData.winRate}%
+                                {dayData.winRate.toFixed(0)}%
                               </div>
                             </div>
                           )}
@@ -208,7 +324,7 @@ const Calendar = () => {
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-purple-600">
-                          {selectedDateData.winRate}%
+                          {selectedDateData.winRate.toFixed(0)}%
                         </div>
                         <div className="text-xs text-gray-600">Win Rate</div>
                       </div>
@@ -220,38 +336,6 @@ const Calendar = () => {
                     <p className="text-sm">No trading activity</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Weekly Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Weekly Performance</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Week 1</span>
-                    <div className="text-right">
-                      <div className="text-sm font-semibold text-green-600">CA$6.23K</div>
-                      <div className="text-xs text-gray-500">3 days</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Week 2</span>
-                    <div className="text-right">
-                      <div className="text-sm font-semibold text-green-600">CA$6.55K</div>
-                      <div className="text-xs text-gray-500">5 days</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Week 3</span>
-                    <div className="text-right">
-                      <div className="text-sm font-semibold text-green-600">CA$4K</div>
-                      <div className="text-xs text-gray-500">4 days</div>
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
