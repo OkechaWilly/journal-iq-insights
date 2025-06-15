@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,12 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Save, Plus } from "lucide-react";
+import { CalendarIcon, Save, Plus, Camera, Image, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 const AddTrade = () => {
   const [date, setDate] = useState<Date>();
+  const [screenshots, setScreenshots] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     symbol: "",
     type: "",
@@ -31,9 +33,23 @@ const AddTrade = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleScreenshotUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newScreenshots = Array.from(files).filter(file => 
+        file.type.startsWith('image/')
+      );
+      setScreenshots(prev => [...prev, ...newScreenshots]);
+    }
+  };
+
+  const removeScreenshot = (index: number) => {
+    setScreenshots(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Trade data:", { ...formData, date });
+    console.log("Trade data:", { ...formData, date, screenshots });
     // Add trade submission logic here
   };
 
@@ -194,6 +210,64 @@ const AddTrade = () => {
                   onChange={(e) => handleInputChange("notes", e.target.value)}
                   rows={4}
                 />
+              </div>
+
+              {/* Screenshots Section */}
+              <div className="space-y-4">
+                <Label>Screenshots</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className="text-center">
+                    <div className="flex justify-center space-x-2 mb-4">
+                      <Camera className="w-8 h-8 text-gray-400" />
+                      <Image className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Upload screenshots of your trade setup, charts, or analysis
+                    </p>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleScreenshotUpload}
+                      className="hidden"
+                      id="screenshot-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('screenshot-upload')?.click()}
+                      className="gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Screenshots
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Screenshot Preview */}
+                {screenshots.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {screenshots.map((screenshot, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={URL.createObjectURL(screenshot)}
+                          alt={`Screenshot ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeScreenshot(index)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
+                          {screenshot.name.split('.')[0].substring(0, 10)}...
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-2">
