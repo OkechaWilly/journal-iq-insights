@@ -3,20 +3,17 @@ import React, { useState } from "react";
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Save, Plus } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { Save, Plus } from "lucide-react";
+import { TradeEntryForm } from '@/components/trade-form/TradeEntryForm';
+import { EmotionalStateSelector } from '@/components/trade-form/EmotionalStateSelector';
+import { TradeOutcomeAnalyzer } from '@/components/trade-form/TradeOutcomeAnalyzer';
+import { useTradeValidation } from '@/hooks/useTradeValidation';
 import { useTrades } from '@/hooks/useTrades';
 import { useNavigate } from 'react-router-dom';
 
 const AddTrade = () => {
-  const [date, setDate] = useState<Date>();
   const [formData, setFormData] = useState({
     symbol: "",
     direction: "",
@@ -29,6 +26,7 @@ const AddTrade = () => {
   });
   const [loading, setLoading] = useState(false);
   
+  const { errors, validateTrade } = useTradeValidation();
   const { addTrade } = useTrades();
   const navigate = useNavigate();
 
@@ -38,6 +36,11 @@ const AddTrade = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateTrade(formData)) {
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -63,7 +66,6 @@ const AddTrade = () => {
         notes: "",
         tags: ""
       });
-      setDate(undefined);
       
       navigate('/trade-log');
     } catch (error) {
@@ -88,126 +90,75 @@ const AddTrade = () => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Trade Details</CardTitle>
-              <CardDescription>Enter the details of your trade execution</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="symbol">Symbol *</Label>
-                  <Input
-                    id="symbol"
-                    placeholder="e.g., AAPL, EURUSD"
-                    value={formData.symbol}
-                    onChange={(e) => handleInputChange("symbol", e.target.value)}
-                    required
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Trade Details</CardTitle>
+                  <CardDescription>Enter the core details of your trade execution</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TradeEntryForm
+                    formData={formData}
+                    onInputChange={handleInputChange}
+                    errors={errors}
                   />
-                </div>
+                </CardContent>
+              </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="direction">Direction *</Label>
-                  <Select onValueChange={(value) => handleInputChange("direction", value)} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Long/Short" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="long">Long</SelectItem>
-                      <SelectItem value="short">Short</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity *</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    step="0.0001"
-                    placeholder="100"
-                    value={formData.quantity}
-                    onChange={(e) => handleInputChange("quantity", e.target.value)}
-                    required
+              <Card>
+                <CardHeader>
+                  <CardTitle>Additional Information</CardTitle>
+                  <CardDescription>Emotional state and notes about your trade</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <EmotionalStateSelector
+                    value={formData.emotionalState}
+                    onChange={(value) => handleInputChange("emotionalState", value)}
                   />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="entryPrice">Entry Price *</Label>
-                  <Input
-                    id="entryPrice"
-                    type="number"
-                    step="0.0001"
-                    placeholder="150.25"
-                    value={formData.entryPrice}
-                    onChange={(e) => handleInputChange("entryPrice", e.target.value)}
-                    required
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tags">Tags (comma separated)</Label>
+                    <Input
+                      id="tags"
+                      placeholder="e.g., breakout, earnings, technical"
+                      value={formData.tags}
+                      onChange={(e) => handleInputChange("tags", e.target.value)}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="exitPrice">Exit Price (Optional)</Label>
-                  <Input
-                    id="exitPrice"
-                    type="number"
-                    step="0.0001"
-                    placeholder="155.75"
-                    value={formData.exitPrice}
-                    onChange={(e) => handleInputChange("exitPrice", e.target.value)}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Trade Notes</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Add your trade analysis, setup reasoning, market conditions, etc..."
+                      value={formData.notes}
+                      onChange={(e) => handleInputChange("notes", e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="emotionalState">Emotional State</Label>
-                  <Select onValueChange={(value) => handleInputChange("emotionalState", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select state" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="confident">Confident</SelectItem>
-                      <SelectItem value="nervous">Nervous</SelectItem>
-                      <SelectItem value="excited">Excited</SelectItem>
-                      <SelectItem value="fearful">Fearful</SelectItem>
-                      <SelectItem value="calm">Calm</SelectItem>
-                      <SelectItem value="greedy">Greedy</SelectItem>
-                      <SelectItem value="patient">Patient</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags (comma separated)</Label>
-                <Input
-                  id="tags"
-                  placeholder="e.g., breakout, earnings, technical"
-                  value={formData.tags}
-                  onChange={(e) => handleInputChange("tags", e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Trade Notes</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Add your trade analysis, setup reasoning, market conditions, etc..."
-                  value={formData.notes}
-                  onChange={(e) => handleInputChange("notes", e.target.value)}
-                  rows={4}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => navigate('/')}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="gap-2 bg-green-600 hover:bg-green-700" disabled={loading}>
-                  <Save className="w-4 h-4" />
-                  {loading ? 'Saving...' : 'Save Trade'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <div className="space-y-6">
+              <TradeOutcomeAnalyzer formData={formData} />
+              
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex flex-col gap-2">
+                    <Button type="submit" className="gap-2 bg-green-600 hover:bg-green-700" disabled={loading}>
+                      <Save className="w-4 h-4" />
+                      {loading ? 'Saving...' : 'Save Trade'}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => navigate('/')}>
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </form>
       </div>
     </Layout>

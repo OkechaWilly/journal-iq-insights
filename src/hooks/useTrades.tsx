@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -60,7 +59,7 @@ export const useTrades = () => {
         .select('*')
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+      if (error && error.code !== 'PGRST116') throw error;
       setMetrics(data);
     } catch (error) {
       console.error('Error fetching metrics:', error);
@@ -165,12 +164,10 @@ export const useTrades = () => {
       setLoading(false);
     };
 
-    // Check if user is authenticated
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         loadData();
         
-        // Set up real-time subscription
         const subscription = supabase
           .channel('trades-changes')
           .on('postgres_changes', 
