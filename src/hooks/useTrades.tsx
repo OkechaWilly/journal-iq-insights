@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +42,8 @@ export const useTrades = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTrades(data || []);
+      // Type assertion to ensure correct typing
+      setTrades((data as Trade[]) || []);
     } catch (error) {
       console.error('Error fetching trades:', error);
       toast({
@@ -60,7 +62,7 @@ export const useTrades = () => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      setMetrics(data);
+      setMetrics(data as UserMetrics);
     } catch (error) {
       console.error('Error fetching metrics:', error);
     }
