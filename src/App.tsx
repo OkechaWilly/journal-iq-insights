@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AddTrade from "./pages/AddTrade";
@@ -13,6 +14,7 @@ import Performance from "./pages/Performance";
 import Calendar from "./pages/Calendar";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -23,15 +25,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/add-trade" element={<AddTrade />} />
-          <Route path="/trade-log" element={<TradeLog />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/performance" element={<Performance />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/add-trade" element={<ProtectedRoute><AddTrade /></ProtectedRoute>} />
+          <Route path="/trade-log" element={<ProtectedRoute><TradeLog /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+          <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
+          <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

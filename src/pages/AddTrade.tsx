@@ -9,48 +9,68 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Save, Plus, Camera, Image, X } from "lucide-react";
+import { CalendarIcon, Save, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useTrades } from '@/hooks/useTrades';
+import { useNavigate } from 'react-router-dom';
 
 const AddTrade = () => {
   const [date, setDate] = useState<Date>();
-  const [screenshots, setScreenshots] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     symbol: "",
-    type: "",
-    side: "",
+    direction: "",
     quantity: "",
     entryPrice: "",
     exitPrice: "",
-    stopLoss: "",
-    takeProfit: "",
-    commission: "",
-    notes: ""
+    emotionalState: "",
+    notes: "",
+    tags: ""
   });
+  const [loading, setLoading] = useState(false);
+  
+  const { addTrade } = useTrades();
+  const navigate = useNavigate();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleScreenshotUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const newScreenshots = Array.from(files).filter(file => 
-        file.type.startsWith('image/')
-      );
-      setScreenshots(prev => [...prev, ...newScreenshots]);
-    }
-  };
-
-  const removeScreenshot = (index: number) => {
-    setScreenshots(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Trade data:", { ...formData, date, screenshots });
-    // Add trade submission logic here
+    setLoading(true);
+    
+    try {
+      await addTrade({
+        symbol: formData.symbol.toUpperCase(),
+        entry_price: parseFloat(formData.entryPrice),
+        exit_price: formData.exitPrice ? parseFloat(formData.exitPrice) : undefined,
+        quantity: parseFloat(formData.quantity),
+        direction: formData.direction as 'long' | 'short',
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : undefined,
+        emotional_state: formData.emotionalState || undefined,
+        notes: formData.notes || undefined,
+      });
+      
+      // Reset form
+      setFormData({
+        symbol: "",
+        direction: "",
+        quantity: "",
+        entryPrice: "",
+        exitPrice: "",
+        emotionalState: "",
+        notes: "",
+        tags: ""
+      });
+      setDate(undefined);
+      
+      navigate('/trade-log');
+    } catch (error) {
+      console.error('Failed to add trade:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -76,91 +96,52 @@ const AddTrade = () => {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="symbol">Symbol</Label>
+                  <Label htmlFor="symbol">Symbol *</Label>
                   <Input
                     id="symbol"
                     placeholder="e.g., AAPL, EURUSD"
                     value={formData.symbol}
                     onChange={(e) => handleInputChange("symbol", e.target.value)}
+                    required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="type">Trade Type</Label>
-                  <Select onValueChange={(value) => handleInputChange("type", value)}>
+                  <Label htmlFor="direction">Direction *</Label>
+                  <Select onValueChange={(value) => handleInputChange("direction", value)} required>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder="Long/Short" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="stock">Stock</SelectItem>
-                      <SelectItem value="forex">Forex</SelectItem>
-                      <SelectItem value="crypto">Crypto</SelectItem>
-                      <SelectItem value="options">Options</SelectItem>
-                      <SelectItem value="futures">Futures</SelectItem>
+                      <SelectItem value="long">Long</SelectItem>
+                      <SelectItem value="short">Short</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="side">Side</Label>
-                  <Select onValueChange={(value) => handleInputChange("side", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Buy/Sell" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="buy">Buy (Long)</SelectItem>
-                      <SelectItem value="sell">Sell (Short)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="date">Trade Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
+                  <Label htmlFor="quantity">Quantity *</Label>
                   <Input
                     id="quantity"
                     type="number"
+                    step="0.0001"
                     placeholder="100"
                     value={formData.quantity}
                     onChange={(e) => handleInputChange("quantity", e.target.value)}
+                    required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="entryPrice">Entry Price</Label>
+                  <Label htmlFor="entryPrice">Entry Price *</Label>
                   <Input
                     id="entryPrice"
                     type="number"
-                    step="0.01"
+                    step="0.0001"
                     placeholder="150.25"
                     value={formData.entryPrice}
                     onChange={(e) => handleInputChange("entryPrice", e.target.value)}
+                    required
                   />
                 </div>
 
@@ -169,7 +150,7 @@ const AddTrade = () => {
                   <Input
                     id="exitPrice"
                     type="number"
-                    step="0.01"
+                    step="0.0001"
                     placeholder="155.75"
                     value={formData.exitPrice}
                     onChange={(e) => handleInputChange("exitPrice", e.target.value)}
@@ -177,28 +158,32 @@ const AddTrade = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="stopLoss">Stop Loss</Label>
-                  <Input
-                    id="stopLoss"
-                    type="number"
-                    step="0.01"
-                    placeholder="145.00"
-                    value={formData.stopLoss}
-                    onChange={(e) => handleInputChange("stopLoss", e.target.value)}
-                  />
+                  <Label htmlFor="emotionalState">Emotional State</Label>
+                  <Select onValueChange={(value) => handleInputChange("emotionalState", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="confident">Confident</SelectItem>
+                      <SelectItem value="nervous">Nervous</SelectItem>
+                      <SelectItem value="excited">Excited</SelectItem>
+                      <SelectItem value="fearful">Fearful</SelectItem>
+                      <SelectItem value="calm">Calm</SelectItem>
+                      <SelectItem value="greedy">Greedy</SelectItem>
+                      <SelectItem value="patient">Patient</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="takeProfit">Take Profit</Label>
-                  <Input
-                    id="takeProfit"
-                    type="number"
-                    step="0.01"
-                    placeholder="160.00"
-                    value={formData.takeProfit}
-                    onChange={(e) => handleInputChange("takeProfit", e.target.value)}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="tags">Tags (comma separated)</Label>
+                <Input
+                  id="tags"
+                  placeholder="e.g., breakout, earnings, technical"
+                  value={formData.tags}
+                  onChange={(e) => handleInputChange("tags", e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">
@@ -212,69 +197,13 @@ const AddTrade = () => {
                 />
               </div>
 
-              {/* Screenshots Section */}
-              <div className="space-y-4">
-                <Label>Screenshots</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                  <div className="text-center">
-                    <div className="flex justify-center space-x-2 mb-4">
-                      <Camera className="w-8 h-8 text-gray-400" />
-                      <Image className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Upload screenshots of your trade setup, charts, or analysis
-                    </p>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleScreenshotUpload}
-                      className="hidden"
-                      id="screenshot-upload"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => document.getElementById('screenshot-upload')?.click()}
-                      className="gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Screenshots
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Screenshot Preview */}
-                {screenshots.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {screenshots.map((screenshot, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={URL.createObjectURL(screenshot)}
-                          alt={`Screenshot ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg border"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeScreenshot(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                        <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
-                          {screenshot.name.split('.')[0].substring(0, 10)}...
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline">Cancel</Button>
-                <Button type="submit" className="gap-2 bg-green-600 hover:bg-green-700">
+                <Button type="button" variant="outline" onClick={() => navigate('/')}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="gap-2 bg-green-600 hover:bg-green-700" disabled={loading}>
                   <Save className="w-4 h-4" />
-                  Save Trade
+                  {loading ? 'Saving...' : 'Save Trade'}
                 </Button>
               </div>
             </CardContent>

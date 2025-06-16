@@ -9,13 +9,99 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      trades: {
+        Row: {
+          created_at: string
+          direction: string
+          emotional_state: string | null
+          entry_price: number
+          exit_price: number | null
+          id: string
+          notes: string | null
+          quantity: number
+          symbol: string
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          emotional_state?: string | null
+          entry_price: number
+          exit_price?: number | null
+          id?: string
+          notes?: string | null
+          quantity: number
+          symbol: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          emotional_state?: string | null
+          entry_price?: number
+          exit_price?: number | null
+          id?: string
+          notes?: string | null
+          quantity?: number
+          symbol?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_metrics: {
+        Row: {
+          avg_risk_reward: number | null
+          total_pnl: number | null
+          total_trades: number | null
+          updated_at: string
+          user_id: string
+          win_rate: number | null
+          winning_trades: number | null
+        }
+        Insert: {
+          avg_risk_reward?: number | null
+          total_pnl?: number | null
+          total_trades?: number | null
+          updated_at?: string
+          user_id: string
+          win_rate?: number | null
+          winning_trades?: number | null
+        }
+        Update: {
+          avg_risk_reward?: number | null
+          total_pnl?: number | null
+          total_trades?: number | null
+          updated_at?: string
+          user_id?: string
+          win_rate?: number | null
+          winning_trades?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_trade_pnl: {
+        Args: {
+          p_entry_price: number
+          p_exit_price: number
+          p_quantity: number
+          p_direction: string
+        }
+        Returns: number
+      }
+      update_user_metrics: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
