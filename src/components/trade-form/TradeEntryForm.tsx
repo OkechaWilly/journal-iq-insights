@@ -81,7 +81,7 @@ export const TradeEntryForm = ({ formData, onInputChange, errors }: TradeEntryFo
           }`}
           required
         />
-        {errors?.entry-price && <p className="text-sm text-red-400">{errors.entryPrice}</p>}
+        {errors?.entryPrice && <p className="text-sm text-red-400">{errors.entryPrice}</p>}
       </div>
 
       <div className="space-y-2">
