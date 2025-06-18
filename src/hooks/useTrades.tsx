@@ -14,6 +14,7 @@ export interface Trade {
   tags?: string[];
   emotional_state?: string;
   notes?: string;
+  screenshot_url?: string;
   created_at: string;
   updated_at: string;
 }
