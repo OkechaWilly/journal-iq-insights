@@ -6,29 +6,30 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Download, Edit, Trash2, Eye } from "lucide-react";
+import { Search, Filter, Download, Edit, Trash2, Eye, MoreHorizontal } from "lucide-react";
 import { Layout } from '@/components/Layout';
+import { useTradesPaginated } from '@/hooks/useTradesPaginated';
 import { useTrades } from '@/hooks/useTrades';
+import { exportTradesToCSV } from '@/utils/csvExport';
+import { calculatePnL } from '@/utils/advancedAnalytics';
 import { format } from 'date-fns';
 
 const TradeLog = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
-  const { trades, loading, deleteTrade } = useTrades();
-
-  const filteredTrades = trades.filter(trade => {
-    const matchesSearch = trade.symbol.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterType === "all" || trade.direction === filterType;
-    return matchesSearch && matchesFilter;
+  const { deleteTrade } = useTrades();
+  
+  const { 
+    trades, 
+    loading, 
+    hasMore, 
+    loadMore, 
+    totalCount 
+  } = useTradesPaginated({
+    pageSize: 25,
+    search: searchTerm,
+    direction: filterType === "all" ? null : filterType
   });
-
-  const calculatePnL = (trade: any) => {
-    if (!trade.exit_price) return 0;
-    const pnl = trade.direction === 'long' 
-      ? (trade.exit_price - trade.entry_price) * trade.quantity
-      : (trade.entry_price - trade.exit_price) * trade.quantity;
-    return pnl;
-  };
 
   const getPnLColor = (pnl: number) => {
     return pnl >= 0 ? "text-emerald-400" : "text-red-400";
@@ -47,11 +48,19 @@ const TradeLog = () => {
     }
   };
 
-  if (loading) {
+  const handleExport = () => {
+    exportTradesToCSV(trades, `trade-log-${new Date().toISOString().split('T')[0]}.csv`);
+  };
+
+  if (loading && trades.length === 0) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-white">Loading trades...</div>
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-slate-700 rounded w-1/3"></div>
+            <div className="h-32 bg-slate-700 rounded"></div>
+            <div className="h-96 bg-slate-700 rounded"></div>
+          </div>
         </div>
       </Layout>
     );
@@ -63,11 +72,17 @@ const TradeLog = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold text-white">Trade Log</h2>
-            <p className="text-slate-400 mt-1">Browse and review all your journaled trades. Filter, edit, or analyze past trades.</p>
+            <p className="text-slate-400 mt-1">
+              Browse and review all your journaled trades ({totalCount} total). Filter, edit, or analyze past trades.
+            </p>
           </div>
-          <Button className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+          <Button 
+            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={handleExport}
+            disabled={trades.length === 0}
+          >
             <Download className="w-4 h-4" />
-            Export
+            Export ({trades.length})
           </Button>
         </div>
 
@@ -114,7 +129,7 @@ const TradeLog = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTrades.map((trade) => {
+                  {trades.map((trade) => {
                     const pnl = calculatePnL(trade);
                     return (
                       <TableRow key={trade.id} className="border-slate-700 hover:bg-slate-800/30">
@@ -176,9 +191,30 @@ const TradeLog = () => {
                   })}
                 </TableBody>
               </Table>
-              {filteredTrades.length === 0 && (
+              
+              {trades.length === 0 && !loading && (
                 <div className="text-center py-8 text-slate-400">
-                  {trades.length === 0 ? "No trades found. Add your first trade to get started!" : "No trades match your search criteria."}
+                  No trades found. Add your first trade to get started!
+                </div>
+              )}
+              
+              {hasMore && (
+                <div className="p-4 text-center border-t border-slate-700">
+                  <Button 
+                    variant="outline" 
+                    onClick={loadMore}
+                    disabled={loading}
+                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                  >
+                    {loading ? (
+                      <>
+                        <MoreHorizontal className="w-4 h-4 mr-2 animate-pulse" />
+                        Loading...
+                      </>
+                    ) : (
+                      'Load More Trades'
+                    )}
+                  </Button>
                 </div>
               )}
             </div>

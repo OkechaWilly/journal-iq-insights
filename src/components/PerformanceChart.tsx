@@ -1,66 +1,143 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { format } from 'date-fns';
+import { useMonthlyPerformance } from '@/hooks/useMonthlyPerformance';
 
-const data = [
-  { date: 'Jan', pnl: 245 },
-  { date: 'Feb', pnl: 412 },
-  { date: 'Mar', pnl: 387 },
-  { date: 'Apr', pnl: 598 },
-  { date: 'May', pnl: 456 },
-  { date: 'Jun', pnl: 789 },
-  { date: 'Jul', pnl: 923 },
-  { date: 'Aug', pnl: 1123 },
-  { date: 'Sep', pnl: 1456 },
-  { date: 'Oct', pnl: 1789 },
-  { date: 'Nov', pnl: 2234 },
-  { date: 'Dec', pnl: 2847 },
-];
+const chartConfig = {
+  pnl: {
+    label: "P&L",
+    color: "hsl(var(--chart-1))",
+  },
+};
 
 export const PerformanceChart = () => {
+  const { monthlyData, loading } = useMonthlyPerformance();
+
+  if (loading) {
+    return (
+      <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="text-white">Performance Chart</CardTitle>
+          <CardDescription className="text-slate-400">Loading performance data...</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] bg-slate-900/30 rounded-lg animate-pulse" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const chartData = monthlyData
+    .map(data => ({
+      month: format(new Date(data.month), 'MMM yyyy'),
+      pnl: Number(data.total_pnl),
+      trades: data.total_trades,
+      winRate: data.total_trades > 0 ? (data.winning_trades / data.total_trades * 100).toFixed(1) : '0'
+    }))
+    .reverse(); // Show oldest to newest
+
+  // Calculate cumulative P&L
+  let cumulativePnL = 0;
+  const cumulativeData = chartData.map(item => {
+    cumulativePnL += item.pnl;
+    return {
+      ...item,
+      cumulativePnL
+    };
+  });
+
+  const maxPnL = Math.max(...cumulativeData.map(d => d.cumulativePnL));
+  const minPnL = Math.min(...cumulativeData.map(d => d.cumulativePnL));
+  const isPositive = cumulativePnL >= 0;
+
   return (
-    <Card className="col-span-1">
+    <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Performance Chart</CardTitle>
-        <p className="text-sm text-gray-600">Monthly P&L progression</p>
+        <CardTitle className="text-white">Cumulative Performance</CardTitle>
+        <CardDescription className="text-slate-400">
+          Monthly P&L progression over time
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-            <XAxis 
-              dataKey="date" 
-              axisLine={false}
-              tickLine={false}
-              className="text-gray-600"
-            />
-            <YAxis 
-              axisLine={false}
-              tickLine={false}
-              className="text-gray-600"
-              tickFormatter={(value) => `$${value}`}
-            />
-            <Tooltip 
-              formatter={(value) => [`$${value}`, 'P&L']}
-              labelStyle={{ color: '#374151' }}
-              contentStyle={{ 
-                backgroundColor: 'white', 
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="pnl" 
-              stroke="#3b82f6" 
-              strokeWidth={2}
-              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Total P&L</p>
+              <p className={`text-2xl font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                ${cumulativePnL.toFixed(2)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-slate-400 text-sm">Total Months</p>
+              <p className="text-white text-xl font-semibold">{chartData.length}</p>
+            </div>
+          </div>
+        </div>
+        
+        {chartData.length > 0 ? (
+          <ChartContainer config={chartConfig} className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={cumulativeData}>
+                <defs>
+                  <linearGradient id="pnlGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop 
+                      offset="5%" 
+                      stopColor={isPositive ? "#10b981" : "#ef4444"} 
+                      stopOpacity={0.3}
+                    />
+                    <stop 
+                      offset="95%" 
+                      stopColor={isPositive ? "#10b981" : "#ef4444"} 
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#64748b" 
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  stroke="#64748b" 
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  domain={[minPnL * 1.1, maxPnL * 1.1]}
+                  tickFormatter={(value) => `$${value.toFixed(0)}`}
+                />
+                <ChartTooltip 
+                  content={
+                    <ChartTooltipContent 
+                      formatter={(value, name) => [
+                        `$${Number(value).toFixed(2)}`,
+                        name === 'cumulativePnL' ? 'Cumulative P&L' : name
+                      ]}
+                    />
+                  } 
+                />
+                <Area
+                  type="monotone"
+                  dataKey="cumulativePnL"
+                  stroke={isPositive ? "#10b981" : "#ef4444"}
+                  strokeWidth={2}
+                  fill="url(#pnlGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-slate-400">
+            <div className="text-center">
+              <p>No performance data available</p>
+              <p className="text-sm mt-1">Add some trades to see your performance chart</p>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

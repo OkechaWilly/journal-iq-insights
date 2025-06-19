@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      monthly_performance: {
+        Row: {
+          avg_pnl: number | null
+          created_at: string
+          id: string
+          month: string
+          total_pnl: number | null
+          total_trades: number | null
+          updated_at: string
+          user_id: string
+          winning_trades: number | null
+        }
+        Insert: {
+          avg_pnl?: number | null
+          created_at?: string
+          id?: string
+          month: string
+          total_pnl?: number | null
+          total_trades?: number | null
+          updated_at?: string
+          user_id: string
+          winning_trades?: number | null
+        }
+        Update: {
+          avg_pnl?: number | null
+          created_at?: string
+          id?: string
+          month?: string
+          total_pnl?: number | null
+          total_trades?: number | null
+          updated_at?: string
+          user_id?: string
+          winning_trades?: number | null
+        }
+        Relationships: []
+      }
       trades: {
         Row: {
           created_at: string
@@ -100,6 +136,10 @@ export type Database = {
           p_direction: string
         }
         Returns: number
+      }
+      refresh_monthly_performance: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       update_user_metrics: {
         Args: { p_user_id: string }
