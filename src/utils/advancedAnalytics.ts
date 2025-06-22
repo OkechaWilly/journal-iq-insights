@@ -1,5 +1,7 @@
+import type { InstitutionalTrade } from '@/types/trade';
 
-import type { Trade } from '@/hooks/useTrades';
+// Use InstitutionalTrade as Trade for consistency
+type Trade = InstitutionalTrade;
 
 export interface AdvancedMetrics {
   sharpeRatio: number;

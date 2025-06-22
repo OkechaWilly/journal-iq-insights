@@ -1,6 +1,9 @@
 
-import type { Trade } from '@/hooks/useTrades';
+import type { InstitutionalTrade } from '@/types/trade';
 import { calculatePnL } from './advancedAnalytics';
+
+// Use InstitutionalTrade as Trade for consistency
+type Trade = InstitutionalTrade;
 
 export const exportTradesToCSV = (trades: Trade[], filename: string = 'trades-export.csv') => {
   const headers = [

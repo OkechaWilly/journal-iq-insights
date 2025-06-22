@@ -1,8 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getTrades, getTradeMetrics, createTrade, updateTrade, deleteTrade, logAuditEvent } from '@/lib/supabase';
 import type { InstitutionalTrade, TradeMetrics } from '@/types/trade';
+
+// Export Trade as alias for InstitutionalTrade for backward compatibility
+export type Trade = InstitutionalTrade;
 
 export const useTrades = () => {
   const [trades, setTrades] = useState<InstitutionalTrade[]>([]);

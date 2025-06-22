@@ -2,7 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { Trade } from './useTrades';
+import type { InstitutionalTrade } from '@/types/trade';
+
+// Use InstitutionalTrade as the main type
+type Trade = InstitutionalTrade;
 
 interface UseTradesPaginatedResult {
   trades: Trade[];
@@ -56,7 +59,14 @@ export const useTradesPaginated = (options: UseTradesPaginatedOptions = {}): Use
 
       if (fetchError) throw fetchError;
 
-      const newTrades = (data as Trade[]) || [];
+      // Cast the data to our Trade type
+      const newTrades = (data || []).map((trade): Trade => ({
+        ...trade,
+        direction: trade.direction as 'long' | 'short',
+        execution_quality: trade.execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
+        slippage: trade.slippage || undefined,
+        ai_insights: trade.ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
+      }));
       
       if (reset) {
         setTrades(newTrades);

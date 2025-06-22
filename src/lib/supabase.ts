@@ -1,6 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { InstitutionalTrade, TradeMetrics, RiskMetric, AuditLog, AIInsight } from '@/types/trade';
+import type { Database } from '@/integrations/supabase/types';
+
+type DatabaseTrade = Database['public']['Tables']['trades']['Row'];
+type DatabaseAuditLog = Database['public']['Tables']['audit_logs']['Row'];
+type DatabaseAIInsight = Database['public']['Tables']['ai_insights']['Row'];
 
 export const getTrades = async (): Promise<InstitutionalTrade[]> => {
   const { data, error } = await supabase
@@ -9,7 +14,15 @@ export const getTrades = async (): Promise<InstitutionalTrade[]> => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  
+  // Cast database rows to our interface with proper type assertions
+  return (data || []).map((trade: DatabaseTrade): InstitutionalTrade => ({
+    ...trade,
+    direction: trade.direction as 'long' | 'short',
+    execution_quality: trade.execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
+    slippage: trade.slippage || undefined,
+    ai_insights: trade.ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
+  }));
 };
 
 export const getTradeMetrics = async (): Promise<TradeMetrics | null> => {
@@ -41,7 +54,14 @@ export const getAuditLogs = async (limit = 50): Promise<AuditLog[]> => {
     .limit(limit);
 
   if (error) throw error;
-  return data || [];
+  
+  // Cast database rows to our interface
+  return (data || []).map((log: DatabaseAuditLog): AuditLog => ({
+    ...log,
+    old_values: log.old_values as Record<string, any> | null,
+    new_values: log.new_values as Record<string, any> | null,
+    ip_address: log.ip_address as string | null
+  }));
 };
 
 export const getAIInsights = async (): Promise<AIInsight[]> => {
@@ -52,7 +72,13 @@ export const getAIInsights = async (): Promise<AIInsight[]> => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  
+  // Cast database rows to our interface
+  return (data || []).map((insight: DatabaseAIInsight): AIInsight => ({
+    ...insight,
+    insight_type: insight.insight_type as 'pattern' | 'risk-warning' | 'opportunity',
+    actionable_data: insight.actionable_data as Record<string, any> | null
+  }));
 };
 
 export const createTrade = async (trade: Omit<InstitutionalTrade, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<InstitutionalTrade> => {
@@ -69,7 +95,15 @@ export const createTrade = async (trade: Omit<InstitutionalTrade, 'id' | 'user_i
     .single();
 
   if (error) throw error;
-  return data;
+  
+  // Cast the returned data
+  return {
+    ...data,
+    direction: data.direction as 'long' | 'short',
+    execution_quality: data.execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
+    slippage: data.slippage || undefined,
+    ai_insights: data.ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
+  };
 };
 
 export const updateTrade = async (id: string, updates: Partial<InstitutionalTrade>): Promise<InstitutionalTrade> => {
@@ -81,7 +115,15 @@ export const updateTrade = async (id: string, updates: Partial<InstitutionalTrad
     .single();
 
   if (error) throw error;
-  return data;
+  
+  // Cast the returned data
+  return {
+    ...data,
+    direction: data.direction as 'long' | 'short',
+    execution_quality: data.execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
+    slippage: data.slippage || undefined,
+    ai_insights: data.ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
+  };
 };
 
 export const deleteTrade = async (id: string): Promise<void> => {
