@@ -1,50 +1,19 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-export interface Trade {
-  id: string;
-  user_id: string;
-  symbol: string;
-  entry_price: number;
-  exit_price?: number;
-  quantity: number;
-  direction: 'long' | 'short';
-  tags?: string[];
-  emotional_state?: string;
-  notes?: string;
-  screenshot_url?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserMetrics {
-  user_id: string;
-  total_pnl: number;
-  win_rate: number;
-  avg_risk_reward: number;
-  total_trades: number;
-  winning_trades: number;
-  updated_at: string;
-}
+import { getTrades, getTradeMetrics, createTrade, updateTrade, deleteTrade, logAuditEvent } from '@/lib/supabase';
+import type { InstitutionalTrade, TradeMetrics } from '@/types/trade';
 
 export const useTrades = () => {
-  const [trades, setTrades] = useState<Trade[]>([]);
-  const [metrics, setMetrics] = useState<UserMetrics | null>(null);
+  const [trades, setTrades] = useState<InstitutionalTrade[]>([]);
+  const [metrics, setMetrics] = useState<TradeMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchTrades = async () => {
     try {
-      const { data, error } = await supabase
-        .from('trades')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      // Type assertion to ensure correct typing
-      setTrades((data as Trade[]) || []);
+      const data = await getTrades();
+      setTrades(data);
     } catch (error) {
       console.error('Error fetching trades:', error);
       toast({
@@ -57,31 +26,18 @@ export const useTrades = () => {
 
   const fetchMetrics = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_metrics')
-        .select('*')
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      setMetrics(data as UserMetrics);
+      const data = await getTradeMetrics();
+      setMetrics(data);
     } catch (error) {
       console.error('Error fetching metrics:', error);
     }
   };
 
-  const addTrade = async (tradeData: Omit<Trade, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+  const addTrade = async (tradeData: Omit<InstitutionalTrade, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data, error } = await supabase
-        .from('trades')
-        .insert([{
-          ...tradeData,
-          user_id: (await supabase.auth.getUser()).data.user?.id
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
+      const newTrade = await createTrade(tradeData);
       
+      await logAuditEvent('create', 'trade', newTrade.id, null, newTrade);
       await fetchTrades();
       await fetchMetrics();
       
@@ -90,7 +46,7 @@ export const useTrades = () => {
         description: "Trade added successfully"
       });
       
-      return data;
+      return newTrade;
     } catch (error) {
       console.error('Error adding trade:', error);
       toast({
@@ -102,17 +58,12 @@ export const useTrades = () => {
     }
   };
 
-  const updateTrade = async (id: string, updates: Partial<Trade>) => {
+  const updateTradeData = async (id: string, updates: Partial<InstitutionalTrade>) => {
     try {
-      const { data, error } = await supabase
-        .from('trades')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const oldTrade = trades.find(t => t.id === id);
+      const updatedTrade = await updateTrade(id, updates);
       
+      await logAuditEvent('update', 'trade', id, oldTrade, updatedTrade);
       await fetchTrades();
       await fetchMetrics();
       
@@ -121,7 +72,7 @@ export const useTrades = () => {
         description: "Trade updated successfully"
       });
       
-      return data;
+      return updatedTrade;
     } catch (error) {
       console.error('Error updating trade:', error);
       toast({
@@ -133,15 +84,12 @@ export const useTrades = () => {
     }
   };
 
-  const deleteTrade = async (id: string) => {
+  const deleteTradeData = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('trades')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      const oldTrade = trades.find(t => t.id === id);
+      await deleteTrade(id);
       
+      await logAuditEvent('delete', 'trade', id, oldTrade, null);
       await fetchTrades();
       await fetchMetrics();
       
@@ -167,28 +115,7 @@ export const useTrades = () => {
       setLoading(false);
     };
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        loadData();
-        
-        const subscription = supabase
-          .channel('trades-changes')
-          .on('postgres_changes', 
-            { event: '*', schema: 'public', table: 'trades' },
-            () => {
-              fetchTrades();
-              fetchMetrics();
-            }
-          )
-          .subscribe();
-
-        return () => {
-          subscription.unsubscribe();
-        };
-      } else {
-        setLoading(false);
-      }
-    });
+    loadData();
   }, []);
 
   return {
@@ -196,8 +123,8 @@ export const useTrades = () => {
     metrics,
     loading,
     addTrade,
-    updateTrade,
-    deleteTrade,
+    updateTrade: updateTradeData,
+    deleteTrade: deleteTradeData,
     refetch: () => Promise.all([fetchTrades(), fetchMetrics()])
   };
 };

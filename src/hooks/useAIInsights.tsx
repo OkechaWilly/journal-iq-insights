@@ -1,22 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { Trade } from './useTrades';
-
-export interface AIInsight {
-  id: string;
-  user_id: string;
-  insight_type: 'pattern' | 'risk-warning' | 'opportunity';
-  confidence_score: number;
-  title: string;
-  description: string;
-  actionable_data?: any;
-  trades_analyzed?: number;
-  valid_until?: string;
-  dismissed_at?: string;
-  created_at: string;
-}
+import { getAIInsights } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import type { AIInsight, InstitutionalTrade } from '@/types/trade';
 
 export const useAIInsights = () => {
   const [insights, setInsights] = useState<AIInsight[]>([]);
@@ -25,23 +12,8 @@ export const useAIInsights = () => {
 
   const fetchInsights = async () => {
     try {
-      const { data, error } = await supabase
-        .from('ai_insights')
-        .select('*')
-        .is('dismissed_at', null)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Type-safe conversion
-      const typedInsights: AIInsight[] = (data || []).map(item => ({
-        ...item,
-        insight_type: item.insight_type as 'pattern' | 'risk-warning' | 'opportunity',
-        confidence_score: item.confidence_score || 0,
-        trades_analyzed: item.trades_analyzed || 0
-      }));
-      
-      setInsights(typedInsights);
+      const data = await getAIInsights();
+      setInsights(data);
     } catch (error) {
       console.error('Error fetching AI insights:', error);
       toast({
@@ -54,20 +26,21 @@ export const useAIInsights = () => {
     }
   };
 
-  const generateInsights = async (trades: Trade[]) => {
-    if (trades.length < 10) return; // Need minimum data
+  const generateInsights = async (trades: InstitutionalTrade[]) => {
+    if (trades.length < 10) return;
 
-    const patterns = analyzePatterns(trades);
-    const risks = analyzeRisks(trades);
-    const opportunities = findOpportunities(trades);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const newInsights = [...patterns, ...risks, ...opportunities];
+      // Generate pattern insights
+      const patterns = analyzeTradePatterns(trades);
+      const risks = analyzeRiskPatterns(trades);
+      const opportunities = findTradingOpportunities(trades);
 
-    for (const insight of newInsights) {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) continue;
+      const newInsights = [...patterns, ...risks, ...opportunities];
 
+      for (const insight of newInsights) {
         await supabase.from('ai_insights').insert({
           user_id: user.id,
           insight_type: insight.type,
@@ -78,12 +51,12 @@ export const useAIInsights = () => {
           trades_analyzed: trades.length,
           valid_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         });
-      } catch (error) {
-        console.error('Error saving insight:', error);
       }
-    }
 
-    await fetchInsights();
+      await fetchInsights();
+    } catch (error) {
+      console.error('Error generating insights:', error);
+    }
   };
 
   const dismissInsight = async (id: string) => {
@@ -116,16 +89,16 @@ export const useAIInsights = () => {
   };
 };
 
-// AI Analysis Functions
-const analyzePatterns = (trades: Trade[]) => {
+// AI Analysis Helper Functions
+const analyzeTradePatterns = (trades: InstitutionalTrade[]) => {
   const patterns = [];
   
-  // Win rate by time of day
-  const hourlyWins = trades.reduce((acc, trade) => {
+  // Win rate by time analysis
+  const hourlyPerformance = trades.reduce((acc, trade) => {
     if (!trade.exit_price) return acc;
     
     const hour = new Date(trade.created_at).getHours();
-    const pnl = calculatePnL(trade);
+    const pnl = calculateTradeProfit(trade);
     
     if (!acc[hour]) acc[hour] = { wins: 0, total: 0 };
     acc[hour].total++;
@@ -134,8 +107,7 @@ const analyzePatterns = (trades: Trade[]) => {
     return acc;
   }, {} as Record<number, { wins: number; total: number }>);
 
-  // Find best performing hours
-  const bestHour = Object.entries(hourlyWins)
+  const bestHour = Object.entries(hourlyPerformance)
     .map(([hour, stats]) => ({
       hour: parseInt(hour),
       winRate: stats.wins / stats.total,
@@ -146,89 +118,47 @@ const analyzePatterns = (trades: Trade[]) => {
 
   if (bestHour && bestHour.winRate > 0.7) {
     patterns.push({
-      type: 'pattern',
+      type: 'pattern' as const,
       confidence: Math.min(bestHour.winRate, 0.95),
-      title: `Peak Performance Hour Identified`,
-      description: `Your win rate is ${(bestHour.winRate * 100).toFixed(1)}% when trading at ${bestHour.hour}:00. Consider focusing trades during this time.`,
+      title: `Peak Performance Hour: ${bestHour.hour}:00`,
+      description: `Your win rate is ${(bestHour.winRate * 100).toFixed(1)}% when trading at ${bestHour.hour}:00`,
       data: { hour: bestHour.hour, winRate: bestHour.winRate }
     });
-  }
-
-  // Hold time analysis
-  const holdTimes = trades
-    .filter(t => t.exit_price)
-    .map(t => ({
-      duration: new Date(t.updated_at).getTime() - new Date(t.created_at).getTime(),
-      pnl: calculatePnL(t)
-    }));
-
-  if (holdTimes.length >= 10) {
-    const avgWinTime = holdTimes.filter(h => h.pnl > 0).reduce((sum, h) => sum + h.duration, 0) / holdTimes.filter(h => h.pnl > 0).length;
-    const avgLossTime = holdTimes.filter(h => h.pnl < 0).reduce((sum, h) => sum + h.duration, 0) / holdTimes.filter(h => h.pnl < 0).length;
-
-    if (avgWinTime < avgLossTime) {
-      patterns.push({
-        type: 'pattern',
-        confidence: 0.8,
-        title: 'Cut Losses Faster',
-        description: `Your winning trades average ${formatDuration(avgWinTime)} while losing trades average ${formatDuration(avgLossTime)}. Consider tighter stop losses.`,
-        data: { avgWinTime, avgLossTime }
-      });
-    }
   }
 
   return patterns;
 };
 
-const analyzeRisks = (trades: Trade[]) => {
+const analyzeRiskPatterns = (trades: InstitutionalTrade[]) => {
   const risks = [];
   const recentTrades = trades.slice(0, 20);
   
-  // Consecutive losses
   let consecutiveLosses = 0;
-  let maxConsecutiveLosses = 0;
-  
   for (const trade of recentTrades) {
     if (!trade.exit_price) continue;
     
-    const pnl = calculatePnL(trade);
+    const pnl = calculateTradeProfit(trade);
     if (pnl < 0) {
       consecutiveLosses++;
-      maxConsecutiveLosses = Math.max(maxConsecutiveLosses, consecutiveLosses);
     } else {
-      consecutiveLosses = 0;
+      break;
     }
   }
 
   if (consecutiveLosses >= 3) {
     risks.push({
-      type: 'risk-warning',
+      type: 'risk-warning' as const,
       confidence: Math.min(0.9, 0.6 + (consecutiveLosses * 0.1)),
       title: 'Losing Streak Alert',
-      description: `You have ${consecutiveLosses} consecutive losses. Consider reducing position size or taking a break.`,
+      description: `You have ${consecutiveLosses} consecutive losses. Consider reducing position size.`,
       data: { consecutiveLosses }
-    });
-  }
-
-  // Position sizing risk
-  const positionSizes = trades.slice(0, 10).map(t => t.quantity * t.entry_price);
-  const avgPosition = positionSizes.reduce((sum, p) => sum + p, 0) / positionSizes.length;
-  const largePositions = positionSizes.filter(p => p > avgPosition * 2).length;
-
-  if (largePositions > 2) {
-    risks.push({
-      type: 'risk-warning',
-      confidence: 0.75,
-      title: 'Position Size Warning',
-      description: `${largePositions} recent trades exceed 2x average position size. Review risk management.`,
-      data: { largePositions, avgPosition }
     });
   }
 
   return risks;
 };
 
-const findOpportunities = (trades: Trade[]) => {
+const findTradingOpportunities = (trades: InstitutionalTrade[]) => {
   const opportunities = [];
   
   // Symbol performance analysis
@@ -239,7 +169,7 @@ const findOpportunities = (trades: Trade[]) => {
       acc[trade.symbol] = { wins: 0, total: 0, totalPnl: 0 };
     }
     
-    const pnl = calculatePnL(trade);
+    const pnl = calculateTradeProfit(trade);
     acc[trade.symbol].total++;
     acc[trade.symbol].totalPnl += pnl;
     if (pnl > 0) acc[trade.symbol].wins++;
@@ -259,10 +189,10 @@ const findOpportunities = (trades: Trade[]) => {
 
   if (bestSymbol && bestSymbol.winRate > 0.8) {
     opportunities.push({
-      type: 'opportunity',
+      type: 'opportunity' as const,
       confidence: Math.min(bestSymbol.winRate, 0.9),
       title: `High-Performance Symbol: ${bestSymbol.symbol}`,
-      description: `${bestSymbol.symbol} shows ${(bestSymbol.winRate * 100).toFixed(1)}% win rate over ${bestSymbol.total} trades. Consider increasing allocation.`,
+      description: `${bestSymbol.symbol} shows ${(bestSymbol.winRate * 100).toFixed(1)}% win rate`,
       data: bestSymbol
     });
   }
@@ -270,20 +200,10 @@ const findOpportunities = (trades: Trade[]) => {
   return opportunities;
 };
 
-const calculatePnL = (trade: Trade): number => {
+const calculateTradeProfit = (trade: InstitutionalTrade): number => {
   if (!trade.exit_price) return 0;
   
   return trade.direction === 'long'
     ? (trade.exit_price - trade.entry_price) * trade.quantity
     : (trade.entry_price - trade.exit_price) * trade.quantity;
-};
-
-const formatDuration = (ms: number): string => {
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-  return `${minutes}m`;
 };

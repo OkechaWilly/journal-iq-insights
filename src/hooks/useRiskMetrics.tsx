@@ -1,43 +1,21 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-export interface RiskMetrics {
-  id: string;
-  user_id: string;
-  calc_date: string;
-  var_95?: number;
-  expected_shortfall?: number;
-  risk_of_ruin?: number;
-  sharpe_ratio?: number;
-  sortino_ratio?: number;
-  max_drawdown?: number;
-  volatility?: number;
-  beta?: number;
-  alpha?: number;
-  created_at: string;
-  updated_at: string;
-}
+import { getRiskMetrics } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import type { RiskMetric } from '@/types/trade';
 
 export const useRiskMetrics = () => {
-  const [metrics, setMetrics] = useState<RiskMetrics[]>([]);
-  const [currentMetrics, setCurrentMetrics] = useState<RiskMetrics | null>(null);
+  const [metrics, setMetrics] = useState<RiskMetric[]>([]);
+  const [currentMetrics, setCurrentMetrics] = useState<RiskMetric | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchRiskMetrics = async () => {
     try {
-      const { data, error } = await supabase
-        .from('risk_metrics')
-        .select('*')
-        .order('calc_date', { ascending: false })
-        .limit(30);
-
-      if (error) throw error;
-      
-      setMetrics(data || []);
-      setCurrentMetrics(data?.[0] || null);
+      const data = await getRiskMetrics();
+      setMetrics(data);
+      setCurrentMetrics(data[0] || null);
     } catch (error) {
       console.error('Error fetching risk metrics:', error);
       toast({
@@ -77,7 +55,7 @@ export const useRiskMetrics = () => {
     }
   };
 
-  const getRiskLevel = (metrics: RiskMetrics): 'low' | 'medium' | 'high' => {
+  const getRiskLevel = (metrics: RiskMetric): 'low' | 'medium' | 'high' => {
     if (!metrics.var_95 || !metrics.max_drawdown) return 'medium';
     
     const riskScore = 
