@@ -18,6 +18,7 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Performance = lazy(() => import("./pages/Performance"));
 const Reports = lazy(() => import("./pages/Reports"));
 const EnhancedReports = lazy(() => import("./pages/EnhancedReports"));
+const InstitutionalDashboard = lazy(() => import("./pages/InstitutionalDashboard"));
 const Calendar = lazy(() => import("./pages/Calendar"));
 const Settings = lazy(() => import("./pages/Settings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -73,6 +74,11 @@ const App = () => {
               <Route path="/enhanced-reports" element={
                 <ProtectedRoute>
                   <EnhancedReports />
+                </ProtectedRoute>
+              } />
+              <Route path="/institutional" element={
+                <ProtectedRoute>
+                  <InstitutionalDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/calendar" element={

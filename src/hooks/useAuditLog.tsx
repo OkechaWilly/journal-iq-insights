@@ -31,7 +31,17 @@ export const useAuditLog = () => {
         .limit(limit);
 
       if (error) throw error;
-      setLogs(data || []);
+      
+      // Type-safe conversion
+      const typedLogs: AuditLog[] = (data || []).map(item => ({
+        ...item,
+        ip_address: item.ip_address ? String(item.ip_address) : undefined,
+        user_agent: item.user_agent || undefined,
+        session_id: item.session_id || undefined,
+        resource_id: item.resource_id || undefined
+      }));
+      
+      setLogs(typedLogs);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast({

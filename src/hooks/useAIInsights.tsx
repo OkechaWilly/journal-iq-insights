@@ -32,7 +32,16 @@ export const useAIInsights = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setInsights(data || []);
+      
+      // Type-safe conversion
+      const typedInsights: AIInsight[] = (data || []).map(item => ({
+        ...item,
+        insight_type: item.insight_type as 'pattern' | 'risk-warning' | 'opportunity',
+        confidence_score: item.confidence_score || 0,
+        trades_analyzed: item.trades_analyzed || 0
+      }));
+      
+      setInsights(typedInsights);
     } catch (error) {
       console.error('Error fetching AI insights:', error);
       toast({
@@ -56,7 +65,11 @@ export const useAIInsights = () => {
 
     for (const insight of newInsights) {
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) continue;
+
         await supabase.from('ai_insights').insert({
+          user_id: user.id,
           insight_type: insight.type,
           confidence_score: insight.confidence,
           title: insight.title,
