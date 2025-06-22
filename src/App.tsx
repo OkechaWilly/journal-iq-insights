@@ -20,6 +20,7 @@ const Reports = lazy(() => import("./pages/Reports"));
 const EnhancedReports = lazy(() => import("./pages/EnhancedReports"));
 const InstitutionalDashboard = lazy(() => import("./pages/InstitutionalDashboard"));
 const Calendar = lazy(() => import("./pages/Calendar"));
+const CalendarView = lazy(() => import("./pages/CalendarView"));
 const Settings = lazy(() => import("./pages/Settings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -54,6 +55,11 @@ const App = () => {
               <Route path="/trades" element={
                 <ProtectedRoute>
                   {isMobile ? <MobileTradeLog /> : <TradeLog />}
+                </ProtectedRoute>
+              } />
+              <Route path="/calendar-view" element={
+                <ProtectedRoute>
+                  <CalendarView />
                 </ProtectedRoute>
               } />
               <Route path="/analytics" element={
