@@ -19,9 +19,9 @@ export const getTrades = async (): Promise<InstitutionalTrade[]> => {
   return (data || []).map((trade: DatabaseTrade): InstitutionalTrade => ({
     ...trade,
     direction: trade.direction as 'long' | 'short',
-    execution_quality: trade.execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
-    slippage: trade.slippage || undefined,
-    ai_insights: trade.ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
+    execution_quality: (trade as any).execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
+    slippage: (trade as any).slippage || undefined,
+    ai_insights: (trade as any).ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
   }));
 };
 
@@ -58,8 +58,8 @@ export const getAuditLogs = async (limit = 50): Promise<AuditLog[]> => {
   // Cast database rows to our interface
   return (data || []).map((log: DatabaseAuditLog): AuditLog => ({
     ...log,
-    old_values: log.old_values as Record<string, any> | null,
-    new_values: log.new_values as Record<string, any> | null,
+    old_values: (log.old_values as Record<string, any>) || null,
+    new_values: (log.new_values as Record<string, any>) || null,
     ip_address: log.ip_address as string | null
   }));
 };
@@ -77,7 +77,7 @@ export const getAIInsights = async (): Promise<AIInsight[]> => {
   return (data || []).map((insight: DatabaseAIInsight): AIInsight => ({
     ...insight,
     insight_type: insight.insight_type as 'pattern' | 'risk-warning' | 'opportunity',
-    actionable_data: insight.actionable_data as Record<string, any> | null
+    actionable_data: (insight.actionable_data as Record<string, any>) || null
   }));
 };
 
@@ -100,9 +100,9 @@ export const createTrade = async (trade: Omit<InstitutionalTrade, 'id' | 'user_i
   return {
     ...data,
     direction: data.direction as 'long' | 'short',
-    execution_quality: data.execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
-    slippage: data.slippage || undefined,
-    ai_insights: data.ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
+    execution_quality: (data as any).execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
+    slippage: (data as any).slippage || undefined,
+    ai_insights: (data as any).ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
   };
 };
 
@@ -120,9 +120,9 @@ export const updateTrade = async (id: string, updates: Partial<InstitutionalTrad
   return {
     ...data,
     direction: data.direction as 'long' | 'short',
-    execution_quality: data.execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
-    slippage: data.slippage || undefined,
-    ai_insights: data.ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
+    execution_quality: (data as any).execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
+    slippage: (data as any).slippage || undefined,
+    ai_insights: (data as any).ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
   };
 };
 

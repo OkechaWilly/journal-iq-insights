@@ -59,13 +59,13 @@ export const useTradesPaginated = (options: UseTradesPaginatedOptions = {}): Use
 
       if (fetchError) throw fetchError;
 
-      // Cast the data to our Trade type
+      // Cast the data to our Trade type with safe property access
       const newTrades = (data || []).map((trade): Trade => ({
         ...trade,
         direction: trade.direction as 'long' | 'short',
-        execution_quality: trade.execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
-        slippage: trade.slippage || undefined,
-        ai_insights: trade.ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
+        execution_quality: (trade as any).execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
+        slippage: (trade as any).slippage || undefined,
+        ai_insights: (trade as any).ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
       }));
       
       if (reset) {
