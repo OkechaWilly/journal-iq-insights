@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,7 +69,10 @@ ${winRate > 60 ?
   };
 
   const getConsistencyAnalysis = (trades: any[]) => {
-    const quantities = trades.map(t => Number(t.quantity)).filter(q => !isNaN(q) && q > 0);
+    const quantities = trades
+      .map(t => Number(t.quantity))
+      .filter(q => !isNaN(q) && q > 0);
+    
     if (quantities.length < 2) return 'Insufficient data';
     
     const avgQuantity = quantities.reduce((sum, q) => sum + q, 0) / quantities.length;
