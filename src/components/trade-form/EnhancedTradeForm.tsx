@@ -29,10 +29,10 @@ export const EnhancedTradeForm = ({ onSubmit, loading }: EnhancedTradeFormProps)
     setup: '',
     emotion: '',
     mistake: '',
-    notes: '',
-    screenshot: null as File | null
+    notes: ''
   });
 
+  const [screenshots, setScreenshots] = useState<string[]>([]);
   const [calculatedR, setCalculatedR] = useState<number | null>(null);
 
   const updateField = (field: string, value: string) => {
@@ -71,7 +71,8 @@ export const EnhancedTradeForm = ({ onSubmit, loading }: EnhancedTradeFormProps)
       r_multiple: calculatedR,
       emotional_state: formData.emotion,
       tags: [formData.strategy, formData.setup].filter(Boolean),
-      notes: `Setup: ${formData.setup}\nMistake: ${formData.mistake}\nNotes: ${formData.notes}`.trim()
+      notes: `Setup: ${formData.setup}\nMistake: ${formData.mistake}\nNotes: ${formData.notes}`.trim(),
+      screenshots: screenshots
     };
     
     onSubmit(tradeData);
@@ -279,9 +280,10 @@ export const EnhancedTradeForm = ({ onSubmit, loading }: EnhancedTradeFormProps)
 
           {/* Screenshot Upload */}
           <div className="space-y-2">
-            <Label className="text-white">Trade Screenshot</Label>
+            <Label className="text-white">Trade Screenshots</Label>
             <ScreenshotUpload 
-              onUpload={(file) => setFormData(prev => ({ ...prev, screenshot: file }))}
+              screenshots={screenshots}
+              onScreenshotsChange={setScreenshots}
             />
           </div>
 

@@ -20,14 +20,16 @@ export const TradeAnalyzer = () => {
     
     // Simulate AI analysis (replace with actual AI call)
     setTimeout(() => {
-      const winRate = recentTrades.filter(t => t.exit_price && calculatePnL(t) > 0).length / recentTrades.filter(t => t.exit_price).length * 100;
+      const closedTrades = recentTrades.filter(t => t.exit_price);
+      const winningTrades = closedTrades.filter(t => calculatePnL(t) > 0);
+      const winRate = closedTrades.length > 0 ? (winningTrades.length / closedTrades.length) * 100 : 0;
       
       const mockAnalysis = `**Recent Trading Analysis (Last 5 Trades)**
 
 🎯 **Performance Summary**
 - Win Rate: ${winRate.toFixed(1)}%
 - Total Trades Analyzed: ${recentTrades.length}
-- Closed Trades: ${recentTrades.filter(t => t.exit_price).length}
+- Closed Trades: ${closedTrades.length}
 
 📊 **Key Observations**
 ${winRate > 60 ? 
@@ -67,7 +69,7 @@ ${winRate > 60 ?
   };
 
   const getConsistencyAnalysis = (trades: any[]) => {
-    const quantities = trades.map(t => t.quantity).filter(q => q > 0);
+    const quantities = trades.map(t => Number(t.quantity)).filter(q => !isNaN(q) && q > 0);
     if (quantities.length < 2) return 'Insufficient data';
     
     const avgQuantity = quantities.reduce((sum, q) => sum + q, 0) / quantities.length;
@@ -89,8 +91,10 @@ ${winRate > 60 ?
   };
 
   const getImprovementArea = (trades: any[]) => {
-    const mistakes = trades.map(t => t.notes).filter(n => n?.includes('Mistake')).length;
-    if (mistakes > trades.length * 0.3) {
+    const mistakeNotes = trades.map(t => t.notes).filter(n => n && n.includes('Mistake'));
+    const mistakeCount = mistakeNotes.length;
+    
+    if (mistakeCount > trades.length * 0.3) {
       return 'High mistake frequency - review pre-trade checklist';
     }
     return 'Continue building on current strengths';
