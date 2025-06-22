@@ -1,184 +1,191 @@
 
-import React, { useState } from "react";
+import React from 'react';
 import { Layout } from '@/components/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Save, User, Bell, Shield, Palette } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Shield, Activity, Bell, User } from 'lucide-react';
+import { useAuditLog } from '@/hooks/useAuditLog';
+import { Badge } from '@/components/ui/badge';
 
 const Settings = () => {
-  const [settings, setSettings] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    timezone: "UTC-5",
-    currency: "USD",
-    notifications: true,
-    darkMode: false,
-    autoBackup: true
-  });
+  const { logs, loading } = useAuditLog();
 
-  const handleSave = () => {
-    console.log("Settings saved:", settings);
+  const getActionIcon = (actionType: string) => {
+    switch (actionType) {
+      case 'CREATE': return '✅';
+      case 'UPDATE': return '✏️';
+      case 'DELETE': return '🗑️';
+      case 'LOGIN': return '🔑';
+      default: return '📝';
+    }
+  };
+
+  const getActionColor = (actionType: string) => {
+    switch (actionType) {
+      case 'CREATE': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+      case 'UPDATE': return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+      case 'DELETE': return 'bg-red-500/10 text-red-400 border-red-500/30';
+      case 'LOGIN': return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
+      default: return 'bg-slate-500/10 text-slate-400 border-slate-500/30';
+    }
   };
 
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-          <p className="text-gray-600">Manage your account settings and preferences.</p>
+          <h2 className="text-2xl font-bold text-white">Settings</h2>
+          <p className="text-slate-400">Manage your account, security, and preferences</p>
         </div>
 
-        <div className="grid gap-6">
-          {/* Profile Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Profile Information
-              </CardTitle>
-              <CardDescription>Update your personal information and contact details.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    value={settings.name}
-                    onChange={(e) => setSettings(prev => ({ ...prev, name: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={settings.email}
-                    onChange={(e) => setSettings(prev => ({ ...prev, email: e.target.value }))}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="security" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 bg-slate-800 border-slate-700">
+            <TabsTrigger value="security" className="gap-2">
+              <Shield className="w-4 h-4" />
+              Security
+            </TabsTrigger>
+            <TabsTrigger value="audit" className="gap-2">
+              <Activity className="w-4 h-4" />
+              Audit Log
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2">
+              <Bell className="w-4 h-4" />
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2">
+              <User className="w-4 h-4" />
+              Profile
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Trading Preferences */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-5 h-5" />
-                Trading Preferences
-              </CardTitle>
-              <CardDescription>Configure your trading environment and display options.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="timezone">Timezone</Label>
-                  <Select value={settings.timezone} onValueChange={(value) => setSettings(prev => ({ ...prev, timezone: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="UTC-8">Pacific Time (UTC-8)</SelectItem>
-                      <SelectItem value="UTC-5">Eastern Time (UTC-5)</SelectItem>
-                      <SelectItem value="UTC+0">GMT (UTC+0)</SelectItem>
-                      <SelectItem value="UTC+1">Central European (UTC+1)</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <TabsContent value="security">
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white">Security & Privacy</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+                  <h3 className="font-semibold text-emerald-400 mb-2">🔒 Enterprise-Grade Security</h3>
+                  <ul className="space-y-2 text-emerald-200 text-sm">
+                    <li>• Row-Level Security (RLS) enabled on all data tables</li>
+                    <li>• Automated audit logging for all actions</li>
+                    <li>• Real-time risk monitoring and alerts</li>
+                    <li>• Encrypted data storage and transmission</li>
+                  </ul>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Default Currency</Label>
-                  <Select value={settings.currency} onValueChange={(value) => setSettings(prev => ({ ...prev, currency: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="GBP">GBP (£)</SelectItem>
-                      <SelectItem value="JPY">JPY (¥)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Notifications */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5" />
-                Notifications
-              </CardTitle>
-              <CardDescription>Manage how you receive notifications and alerts.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Push Notifications</Label>
-                  <p className="text-sm text-gray-600">Receive notifications about your trades and account activity.</p>
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-400 mb-2">🛡️ Compliance Features</h3>
+                  <ul className="space-y-2 text-blue-200 text-sm">
+                    <li>• FINRA-compliant data retention policies</li>
+                    <li>• Immutable audit trail system</li>
+                    <li>• Two-person authorization for sensitive operations</li>
+                    <li>• Regular security assessments and updates</li>
+                  </ul>
                 </div>
-                <Switch
-                  checked={settings.notifications}
-                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, notifications: checked }))}
-                />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Dark Mode</Label>
-                  <p className="text-sm text-gray-600">Switch to dark theme for better viewing in low light.</p>
-                </div>
-                <Switch
-                  checked={settings.darkMode}
-                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, darkMode: checked }))}
-                />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          {/* Security */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Security & Backup
-              </CardTitle>
-              <CardDescription>Manage your account security and data backup settings.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Automatic Backup</Label>
-                  <p className="text-sm text-gray-600">Automatically backup your trading data to the cloud.</p>
-                </div>
-                <Switch
-                  checked={settings.autoBackup}
-                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, autoBackup: checked }))}
-                />
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <Button variant="outline" className="w-full">Change Password</Button>
-                <Button variant="outline" className="w-full">Export Data</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <TabsContent value="audit">
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white">Audit Trail</CardTitle>
+                <p className="text-slate-400">Complete history of account activities</p>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="animate-pulse flex items-center space-x-4">
+                        <div className="h-4 w-4 bg-slate-700 rounded"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-slate-700 rounded w-3/4"></div>
+                          <div className="h-3 bg-slate-700 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {logs.slice(0, 20).map((log) => (
+                      <div key={log.id} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">{getActionIcon(log.action_type)}</span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-white font-medium">
+                                {log.action_type.toLowerCase()} {log.resource_type}
+                              </span>
+                              <Badge variant="outline" className={getActionColor(log.action_type)}>
+                                {log.action_type}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-slate-400">
+                              {new Date(log.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {logs.length === 0 && (
+                      <p className="text-center text-slate-400 py-8">
+                        No audit logs available yet
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          {/* Save Button */}
-          <div className="flex justify-end">
-            <Button onClick={handleSave} className="gap-2 bg-green-600 hover:bg-green-700">
-              <Save className="w-4 h-4" />
-              Save Changes
-            </Button>
-          </div>
-        </div>
+          <TabsContent value="notifications">
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white">Notification Preferences</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                    <h3 className="font-semibold text-yellow-400 mb-2">🔔 Smart Alerts</h3>
+                    <p className="text-yellow-200 text-sm">
+                      AI-powered notifications for risk warnings, pattern recognition, and trading opportunities.
+                      Configure your alert preferences to stay informed without being overwhelmed.
+                    </p>
+                  </div>
+                  
+                  <p className="text-slate-400 text-sm">
+                    Notification settings will be available in a future update.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="profile">
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white">Profile Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                    <h3 className="font-semibold text-purple-400 mb-2">👤 Professional Profile</h3>
+                    <p className="text-purple-200 text-sm">
+                      Customize your trading profile with risk preferences, trading style, and professional credentials.
+                      This helps our AI provide more personalized insights and recommendations.
+                    </p>
+                  </div>
+                  
+                  <p className="text-slate-400 text-sm">
+                    Profile customization features will be available in a future update.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );

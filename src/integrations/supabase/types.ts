@@ -9,6 +9,90 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_insights: {
+        Row: {
+          actionable_data: Json | null
+          confidence_score: number | null
+          created_at: string | null
+          description: string
+          dismissed_at: string | null
+          id: string
+          insight_type: string
+          title: string
+          trades_analyzed: number | null
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          actionable_data?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          description: string
+          dismissed_at?: string | null
+          id?: string
+          insight_type: string
+          title: string
+          trades_analyzed?: number | null
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          actionable_data?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          description?: string
+          dismissed_at?: string | null
+          id?: string
+          insight_type?: string
+          title?: string
+          trades_analyzed?: number | null
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          id: number
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          resource_id: string | null
+          resource_type: string
+          session_id: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          id?: number
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          id?: number
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       monthly_performance: {
         Row: {
           avg_pnl: number | null
@@ -42,6 +126,57 @@ export type Database = {
           updated_at?: string
           user_id?: string
           winning_trades?: number | null
+        }
+        Relationships: []
+      }
+      risk_metrics: {
+        Row: {
+          alpha: number | null
+          beta: number | null
+          calc_date: string
+          created_at: string | null
+          expected_shortfall: number | null
+          id: string
+          max_drawdown: number | null
+          risk_of_ruin: number | null
+          sharpe_ratio: number | null
+          sortino_ratio: number | null
+          updated_at: string | null
+          user_id: string
+          var_95: number | null
+          volatility: number | null
+        }
+        Insert: {
+          alpha?: number | null
+          beta?: number | null
+          calc_date?: string
+          created_at?: string | null
+          expected_shortfall?: number | null
+          id?: string
+          max_drawdown?: number | null
+          risk_of_ruin?: number | null
+          sharpe_ratio?: number | null
+          sortino_ratio?: number | null
+          updated_at?: string | null
+          user_id: string
+          var_95?: number | null
+          volatility?: number | null
+        }
+        Update: {
+          alpha?: number | null
+          beta?: number | null
+          calc_date?: string
+          created_at?: string | null
+          expected_shortfall?: number | null
+          id?: string
+          max_drawdown?: number | null
+          risk_of_ruin?: number | null
+          sharpe_ratio?: number | null
+          sortino_ratio?: number | null
+          updated_at?: string | null
+          user_id?: string
+          var_95?: number | null
+          volatility?: number | null
         }
         Relationships: []
       }
@@ -128,6 +263,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_advanced_risk_metrics: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       calculate_trade_pnl: {
         Args: {
           p_entry_price: number
@@ -136,6 +275,17 @@ export type Database = {
           p_direction: string
         }
         Returns: number
+      }
+      log_audit_event: {
+        Args: {
+          p_user_id: string
+          p_action_type: string
+          p_resource_type: string
+          p_resource_id?: string
+          p_old_values?: Json
+          p_new_values?: Json
+        }
+        Returns: undefined
       }
       refresh_monthly_performance: {
         Args: { p_user_id: string }
