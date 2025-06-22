@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,7 +74,7 @@ ${winRate > 60 ?
     const avgQuantity = quantities.reduce((sum, q) => sum + q, 0) / quantities.length;
     const variance = quantities.reduce((sum, q) => sum + Math.pow(q - avgQuantity, 2), 0) / quantities.length;
     
-    return variance < avgQuantity * 0.1 ? 'Consistent position sizing' : 'Variable position sizing - review risk management';
+    return variance < (avgQuantity * 0.1) ? 'Consistent position sizing' : 'Variable position sizing - review risk management';
   };
 
   const getMainFocusArea = (trades: any[]) => {
@@ -93,8 +92,9 @@ ${winRate > 60 ?
   const getImprovementArea = (trades: any[]) => {
     const mistakeNotes = trades.map(t => t.notes).filter(n => n && n.includes('Mistake'));
     const mistakeCount = mistakeNotes.length;
+    const tradeCount = trades.length;
     
-    if (mistakeCount > trades.length * 0.3) {
+    if (tradeCount > 0 && mistakeCount > (tradeCount * 0.3)) {
       return 'High mistake frequency - review pre-trade checklist';
     }
     return 'Continue building on current strengths';
