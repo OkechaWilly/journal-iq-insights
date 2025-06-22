@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,12 +61,12 @@ ${winRate > 60 ?
     const emotions = trades.map(t => t.emotional_state).filter(Boolean);
     if (emotions.length === 0) return 'Not tracked';
     
-    const emotionCount = emotions.reduce((acc, emotion) => {
+    const emotionCount = emotions.reduce((acc: Record<string, number>, emotion: string) => {
       acc[emotion] = (acc[emotion] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     
-    return Object.entries(emotionCount).sort((a, b) => b[1] - a[1])[0][0];
+    return Object.entries(emotionCount).sort((a, b) => Number(b[1]) - Number(a[1]))[0][0];
   };
 
   const getConsistencyAnalysis = (trades: any[]) => {
@@ -75,8 +76,8 @@ ${winRate > 60 ?
     
     if (quantities.length < 2) return 'Insufficient data';
     
-    const avgQuantity = quantities.reduce((sum, q) => sum + q, 0) / quantities.length;
-    const variance = quantities.reduce((sum, q) => sum + Math.pow(q - avgQuantity, 2), 0) / quantities.length;
+    const avgQuantity = quantities.reduce((sum: number, q: number) => sum + q, 0) / quantities.length;
+    const variance = quantities.reduce((sum: number, q: number) => sum + Math.pow(q - avgQuantity, 2), 0) / quantities.length;
     
     return variance < (avgQuantity * 0.1) ? 'Consistent position sizing' : 'Variable position sizing - review risk management';
   };
@@ -85,12 +86,12 @@ ${winRate > 60 ?
     const strategies = trades.map(t => t.tags?.[0]).filter(Boolean);
     if (strategies.length === 0) return 'strategy documentation';
     
-    const mostUsed = strategies.reduce((acc, strategy) => {
+    const mostUsed = strategies.reduce((acc: Record<string, number>, strategy: string) => {
       acc[strategy] = (acc[strategy] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     
-    return `${Object.entries(mostUsed).sort((a, b) => b[1] - a[1])[0][0]} strategy refinement`;
+    return `${Object.entries(mostUsed).sort((a, b) => Number(b[1]) - Number(a[1]))[0][0]} strategy refinement`;
   };
 
   const getImprovementArea = (trades: any[]) => {
