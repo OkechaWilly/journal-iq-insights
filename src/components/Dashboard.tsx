@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MetricsCards } from '@/components/MetricsCards';
 import { PerformanceChart } from '@/components/PerformanceChart';
@@ -6,6 +5,8 @@ import { RecentTrades } from '@/components/RecentTrades';
 import { QuickActions } from '@/components/QuickActions';
 import { AIAnalyzer } from '@/components/AIAnalyzer';
 import { RiskDashboard } from '@/components/RiskDashboard';
+import { TradingInsights } from '@/components/dashboard/TradingInsights';
+import { TradeAnalyzer } from '@/components/ai/TradeAnalyzer';
 
 export const Dashboard = () => {
   return (
@@ -18,12 +19,14 @@ export const Dashboard = () => {
         <QuickActions />
       </div>
       
-      <MetricsCards />
+      <TradingInsights />
       
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <PerformanceChart />
         <RecentTrades />
       </div>
+
+      <TradeAnalyzer />
 
       <AIAnalyzer />
       
