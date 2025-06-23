@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Layout } from '@/components/Layout';
-import { TradingCalendar } from '@/components/calendar/TradingCalendar';
+import { ImprovedTradingCalendar } from '@/components/calendar/ImprovedTradingCalendar';
 
 const CalendarView = () => {
   return (
@@ -9,10 +9,10 @@ const CalendarView = () => {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-white">Trading Calendar</h2>
-          <p className="text-slate-400">Visual overview of your trading activity by date</p>
+          <p className="text-slate-400">Visual overview of your trading activity with detailed insights</p>
         </div>
         
-        <TradingCalendar />
+        <ImprovedTradingCalendar />
       </div>
     </Layout>
   );
