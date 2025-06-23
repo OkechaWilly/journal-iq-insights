@@ -1,40 +1,51 @@
-
 import React from 'react';
-import { MetricsCards } from '@/components/MetricsCards';
-import { PerformanceChart } from '@/components/PerformanceChart';
-import { RecentTrades } from '@/components/RecentTrades';
-import { QuickActions } from '@/components/QuickActions';
-import { AIAnalyzer } from '@/components/AIAnalyzer';
-import { RiskDashboard } from '@/components/RiskDashboard';
-import { TradingInsights } from '@/components/dashboard/TradingInsights';
-import { TradeAnalyzer } from '@/components/ai/TradeAnalyzer';
-import { EnhancedAnalyticsDashboard } from '@/components/analytics/EnhancedAnalyticsDashboard';
+import { Layout } from './Layout';
+import { MetricsCards } from './MetricsCards';
+import { PerformanceChart } from './PerformanceChart';
+import { RecentTrades } from './RecentTrades';
+import { QuickActions } from './QuickActions';
+import { StreakTracker } from './StreakTracker';
+import { EnhancedAnalyticsDashboard } from './analytics/EnhancedAnalyticsDashboard';
+import { useTrades } from '@/hooks/useTrades';
 
 export const Dashboard = () => {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Trading Dashboard</h2>
-          <p className="text-slate-400">AI-powered insights and professional risk management</p>
+  const { trades, metrics, loading } = useTrades();
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-white">Loading dashboard...</div>
         </div>
-        <QuickActions />
+      </Layout>
+    );
+  }
+
+  const recentTrades = trades.slice(0, 5);
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-white">Dashboard</h2>
+            <p className="text-slate-400">Your trading performance overview</p>
+          </div>
+          <QuickActions />
+        </div>
+
+        {/* Add Streak Tracker */}
+        <StreakTracker />
+
+        <MetricsCards metrics={metrics} />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <PerformanceChart trades={trades} />
+          <RecentTrades trades={recentTrades} />
+        </div>
+
+        <EnhancedAnalyticsDashboard />
       </div>
-      
-      <TradingInsights />
-      
-      <EnhancedAnalyticsDashboard />
-
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <PerformanceChart />
-        <RecentTrades />
-      </div>
-
-      <TradeAnalyzer />
-
-      <AIAnalyzer />
-      
-      <RiskDashboard />
-    </div>
+    </Layout>
   );
 };
