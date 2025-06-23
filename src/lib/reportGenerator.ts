@@ -5,13 +5,6 @@ import { calculateAdvancedMetrics, calculatePnL } from '@/utils/advancedAnalytic
 import type { InstitutionalTrade, TradeMetrics } from '@/types/trade';
 import { format } from 'date-fns';
 
-// Extend jsPDF with autoTable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
-
 export interface ReportOptions {
   title: string;
   dateRange: {
@@ -80,7 +73,7 @@ export const generatePDFReport = async (
     ['Average Loss', `$${advancedMetrics.averageLoss.toFixed(2)}`],
   ];
 
-  doc.autoTable({
+  (doc as any).autoTable({
     startY: yPosition,
     head: [['Metric', 'Value']],
     body: summaryData,
@@ -111,7 +104,7 @@ export const generatePDFReport = async (
     trade.emotional_state || '-',
   ]);
 
-  doc.autoTable({
+  (doc as any).autoTable({
     startY: yPosition,
     head: [['Date', 'Symbol', 'Direction', 'Entry', 'Exit', 'Qty', 'P&L', 'Emotion']],
     body: tradeData,

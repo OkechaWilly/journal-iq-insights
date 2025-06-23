@@ -136,7 +136,7 @@ const Reports = () => {
                   <Checkbox
                     id="charts"
                     checked={includeCharts}
-                    onCheckedChange={setIncludeCharts}
+                    onCheckedChange={(checked) => setIncludeCharts(checked === true)}
                   />
                   <Label htmlFor="charts" className="text-slate-300">Include Charts</Label>
                 </div>
@@ -144,7 +144,7 @@ const Reports = () => {
                   <Checkbox
                     id="insights"
                     checked={includeAIInsights}
-                    onCheckedChange={setIncludeAIInsights}
+                    onCheckedChange={(checked) => setIncludeAIInsights(checked === true)}
                   />
                   <Label htmlFor="insights" className="text-slate-300">Include AI Insights</Label>
                 </div>

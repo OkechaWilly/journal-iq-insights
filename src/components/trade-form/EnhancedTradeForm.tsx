@@ -60,14 +60,30 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
 
   const handleSubmit = async (data: TradeFormData) => {
     try {
+      // Ensure all required fields are present for the API call
+      const tradeData: Omit<InstitutionalTrade, 'id' | 'user_id' | 'created_at' | 'updated_at'> = {
+        symbol: data.symbol,
+        direction: data.direction,
+        entry_price: data.entry_price,
+        exit_price: data.exit_price || null,
+        quantity: data.quantity,
+        emotional_state: data.emotional_state || null,
+        notes: data.notes || null,
+        tags: data.tags || null,
+        screenshot_url: null,
+        execution_quality: undefined,
+        slippage: undefined,
+        ai_insights: undefined,
+      };
+
       if (isEditing && trade) {
-        await updateTrade(trade.id, data);
+        await updateTrade(trade.id, tradeData);
         toast({
           title: "Trade Updated",
           description: "Your trade has been updated successfully.",
         });
       } else {
-        await addTrade(data);
+        await addTrade(tradeData);
         toast({
           title: "Trade Added",
           description: "Your trade has been added successfully.",
