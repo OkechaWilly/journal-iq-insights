@@ -1,10 +1,14 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { format } from 'date-fns';
 import { useMonthlyPerformance } from '@/hooks/useMonthlyPerformance';
+import type { InstitutionalTrade } from '@/types/trade';
+
+interface PerformanceChartProps {
+  trades?: InstitutionalTrade[];
+}
 
 const chartConfig = {
   pnl: {
@@ -13,7 +17,7 @@ const chartConfig = {
   },
 };
 
-export const PerformanceChart = () => {
+export const PerformanceChart = ({ trades }: PerformanceChartProps) => {
   const { monthlyData, loading } = useMonthlyPerformance();
 
   if (loading) {

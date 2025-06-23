@@ -1,11 +1,15 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, TrendingUp, TrendingDown, Target, Calendar } from 'lucide-react';
 import { useTrades } from '@/hooks/useTrades';
+import type { TradeMetrics } from '@/types/trade';
 
-export const MetricsCards = () => {
-  const { metrics, loading } = useTrades();
+interface MetricsCardsProps {
+  metrics?: TradeMetrics | null;
+}
+
+export const MetricsCards = ({ metrics }: MetricsCardsProps) => {
+  const { loading } = useTrades();
 
   if (loading) {
     return (
