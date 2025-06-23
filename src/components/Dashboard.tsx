@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MetricsCards } from '@/components/MetricsCards';
 import { PerformanceChart } from '@/components/PerformanceChart';
@@ -7,6 +8,7 @@ import { AIAnalyzer } from '@/components/AIAnalyzer';
 import { RiskDashboard } from '@/components/RiskDashboard';
 import { TradingInsights } from '@/components/dashboard/TradingInsights';
 import { TradeAnalyzer } from '@/components/ai/TradeAnalyzer';
+import { EnhancedAnalyticsDashboard } from '@/components/analytics/EnhancedAnalyticsDashboard';
 
 export const Dashboard = () => {
   return (
@@ -21,6 +23,8 @@ export const Dashboard = () => {
       
       <TradingInsights />
       
+      <EnhancedAnalyticsDashboard />
+
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <PerformanceChart />
         <RecentTrades />
