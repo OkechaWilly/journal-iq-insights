@@ -116,14 +116,15 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
               render={({ field }) => (
                 <FormItem className="grid grid-cols-4 items-center gap-4">
                   <FormLabel className="text-right text-white">Symbol</FormLabel>
-                  <FormControl>
-                    <SymbolSearch
-                      value={field.value}
-                      onChange={field.onChange}
-                      onSelect={field.onChange}
-                      className="col-span-3"
-                    />
-                  </FormControl>
+                  <div className="col-span-3">
+                    <FormControl>
+                      <SymbolSearch
+                        value={field.value}
+                        onChange={field.onChange}
+                        onSelect={field.onChange}
+                      />
+                    </FormControl>
+                  </div>
                   <FormMessage className="col-span-4" />
                 </FormItem>
               )}
@@ -136,13 +137,14 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
               render={({ field }) => (
                 <FormItem className="grid grid-cols-4 items-center gap-4">
                   <FormLabel className="text-right text-white">Direction</FormLabel>
-                  <FormControl>
-                    <DirectionToggle
-                      value={field.value}
-                      onChange={field.onChange}
-                      className="col-span-3"
-                    />
-                  </FormControl>
+                  <div className="col-span-3">
+                    <FormControl>
+                      <DirectionToggle
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                  </div>
                   <FormMessage className="col-span-4" />
                 </FormItem>
               )}
