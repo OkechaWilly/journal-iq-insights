@@ -19,9 +19,14 @@ export const getTrades = async (): Promise<InstitutionalTrade[]> => {
   return (data || []).map((trade: DatabaseTrade): InstitutionalTrade => ({
     ...trade,
     direction: trade.direction as 'long' | 'short',
-    execution_quality: (trade as any).execution_quality as 'excellent' | 'good' | 'fair' | 'poor' | undefined,
-    slippage: (trade as any).slippage || undefined,
-    ai_insights: (trade as any).ai_insights as { pattern: string; confidence: number; actionable: boolean } | undefined
+    exit_price: trade.exit_price || null,
+    tags: trade.tags || null,
+    emotional_state: trade.emotional_state || null,
+    notes: trade.notes || null,
+    screenshot_url: trade.screenshot_url || null,
+    execution_quality: undefined,
+    slippage: undefined,
+    ai_insights: undefined
   }));
 };
 

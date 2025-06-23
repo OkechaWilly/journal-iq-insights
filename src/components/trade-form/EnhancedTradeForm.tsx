@@ -6,7 +6,6 @@ import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { SymbolSearch } from './SymbolSearch';
 import { DirectionToggle } from './DirectionToggle';
@@ -60,7 +59,7 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
 
   const handleSubmit = async (data: TradeFormData) => {
     try {
-      // Ensure all required fields are present for the API call
+      // Create properly typed trade data
       const tradeData: Omit<InstitutionalTrade, 'id' | 'user_id' | 'created_at' | 'updated_at'> = {
         symbol: data.symbol,
         direction: data.direction,
@@ -101,7 +100,7 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
   };
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
+    <Card className="bg-slate-800/50 border-slate-700">
       <CardHeader>
         <CardTitle className="text-white">
           {isEditing ? 'Edit Trade' : 'Add New Trade'}
@@ -115,16 +114,17 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
               control={form.control}
               name="symbol"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Symbol</FormLabel>
+                <FormItem className="grid grid-cols-4 items-center gap-4">
+                  <FormLabel className="text-right text-white">Symbol</FormLabel>
                   <FormControl>
                     <SymbolSearch
                       value={field.value}
                       onChange={field.onChange}
                       onSelect={field.onChange}
+                      className="col-span-3"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="col-span-4" />
                 </FormItem>
               )}
             />
@@ -134,15 +134,16 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
               control={form.control}
               name="direction"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Direction</FormLabel>
+                <FormItem className="grid grid-cols-4 items-center gap-4">
+                  <FormLabel className="text-right text-white">Direction</FormLabel>
                   <FormControl>
                     <DirectionToggle
                       value={field.value}
                       onChange={field.onChange}
+                      className="col-span-3"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="col-span-4" />
                 </FormItem>
               )}
             />
@@ -162,7 +163,7 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
                         placeholder="0.00"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        className="bg-slate-800 border-slate-600 text-white"
+                        className="bg-slate-700 border-slate-600 text-white"
                       />
                     </FormControl>
                     <FormMessage />
@@ -183,7 +184,7 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
                         placeholder="0.00"
                         {...field}
                         onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        className="bg-slate-800 border-slate-600 text-white"
+                        className="bg-slate-700 border-slate-600 text-white"
                       />
                     </FormControl>
                     <FormMessage />
@@ -204,7 +205,7 @@ export const EnhancedTradeForm: React.FC<EnhancedTradeFormProps> = ({
                         placeholder="1"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                        className="bg-slate-800 border-slate-600 text-white"
+                        className="bg-slate-700 border-slate-600 text-white"
                       />
                     </FormControl>
                     <FormMessage />

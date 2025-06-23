@@ -1,16 +1,15 @@
-
 export interface InstitutionalTrade {
   id: string;
   user_id: string;
   symbol: string;
   entry_price: number;
-  exit_price?: number;
+  exit_price?: number | null;
   quantity: number;
   direction: 'long' | 'short';
-  tags?: string[];
-  emotional_state?: string;
-  notes?: string;
-  screenshot_url?: string;
+  tags?: string[] | null;
+  emotional_state?: string | null;
+  notes?: string | null;
+  screenshot_url?: string | null;
   created_at: string;
   updated_at: string;
   execution_quality?: 'excellent' | 'good' | 'fair' | 'poor';
@@ -21,6 +20,9 @@ export interface InstitutionalTrade {
     actionable: boolean;
   };
 }
+
+// Keep the Trade alias for backward compatibility
+export type Trade = InstitutionalTrade;
 
 export interface TradeMetrics {
   total_pnl: number;
