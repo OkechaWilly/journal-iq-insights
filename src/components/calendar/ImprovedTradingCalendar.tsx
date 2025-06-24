@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, DollarSign, Target } from 'lucide-react';
 import { useTrades } from '@/hooks/useTrades';
 import { calculatePnL } from '@/utils/advancedAnalytics';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, getDay, getWeek, startOfWeek, endOfWeek, eachWeekOfInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, getDay, startOfWeek, endOfWeek, eachWeekOfInterval } from 'date-fns';
 
 interface DayActivity {
   date: Date;
@@ -14,6 +14,8 @@ interface DayActivity {
   totalPnL: number;
   winRate: number;
   tradeCount: number;
+  hasLoss: boolean;
+  hasWin: boolean;
 }
 
 interface WeekSummary {
@@ -38,6 +40,7 @@ export const ImprovedTradingCalendar = () => {
   const tradesByDay = useMemo(() => {
     const dayMap = new Map<string, DayActivity>();
     
+    // Initialize all days in the month
     monthDays.forEach(date => {
       const dayKey = format(date, 'yyyy-MM-dd');
       dayMap.set(dayKey, {
@@ -45,25 +48,51 @@ export const ImprovedTradingCalendar = () => {
         trades: [],
         totalPnL: 0,
         winRate: 0,
-        tradeCount: 0
+        tradeCount: 0,
+        hasLoss: false,
+        hasWin: false
       });
     });
 
+    // Process all trades, not just those in current month view
     trades.forEach(trade => {
       const tradeDate = new Date(trade.created_at);
       const dayKey = format(tradeDate, 'yyyy-MM-dd');
       
-      if (dayMap.has(dayKey)) {
+      // Check if trade date falls within current month view
+      const monthStart = startOfMonth(currentMonth);
+      const monthEnd = endOfMonth(currentMonth);
+      
+      if (tradeDate >= monthStart && tradeDate <= monthEnd) {
+        if (!dayMap.has(dayKey)) {
+          dayMap.set(dayKey, {
+            date: tradeDate,
+            trades: [],
+            totalPnL: 0,
+            winRate: 0,
+            tradeCount: 0,
+            hasLoss: false,
+            hasWin: false
+          });
+        }
+        
         const dayData = dayMap.get(dayKey)!;
         dayData.trades.push(trade);
         
         if (trade.exit_price) {
           const pnl = calculatePnL(trade);
           dayData.totalPnL += pnl;
+          
+          if (pnl > 0) {
+            dayData.hasWin = true;
+          } else if (pnl < 0) {
+            dayData.hasLoss = true;
+          }
         }
       }
     });
 
+    // Calculate win rates and trade counts
     dayMap.forEach(dayData => {
       dayData.tradeCount = dayData.trades.length;
       if (dayData.tradeCount > 0) {
@@ -73,46 +102,73 @@ export const ImprovedTradingCalendar = () => {
       }
     });
 
-    return Array.from(dayMap.values());
-  }, [trades, monthDays]);
+    return Array.from(dayMap.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [trades, monthDays, currentMonth]);
 
   const weekSummaries = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
-    const weeks = eachWeekOfInterval({ start: monthStart, end: monthEnd });
+    const firstDayOfMonth = getDay(monthStart);
+    
+    // Calculate weeks that intersect with the current month
+    const calendarStart = startOfWeek(monthStart);
+    const calendarEnd = endOfWeek(monthEnd);
+    const weeks = eachWeekOfInterval({ start: calendarStart, end: calendarEnd });
     
     return weeks.map((weekStart, index) => {
       const weekEnd = endOfWeek(weekStart);
-      const weekData = tradesByDay.filter(day => 
-        day.date >= weekStart && day.date <= weekEnd
-      );
       
-      const totalPnL = weekData.reduce((sum, day) => sum + day.totalPnL, 0);
-      const tradingDays = weekData.filter(day => day.tradeCount > 0).length;
-      const totalTrades = weekData.reduce((sum, day) => sum + day.tradeCount, 0);
+      // Get trades for this week that fall within our month view
+      const weekTrades = trades.filter(trade => {
+        const tradeDate = new Date(trade.created_at);
+        return tradeDate >= weekStart && tradeDate <= weekEnd && 
+               tradeDate >= monthStart && tradeDate <= monthEnd;
+      });
+      
+      const totalPnL = weekTrades.reduce((sum, trade) => {
+        return trade.exit_price ? sum + calculatePnL(trade) : sum;
+      }, 0);
+      
+      const tradingDays = new Set(weekTrades.map(trade => 
+        format(new Date(trade.created_at), 'yyyy-MM-dd')
+      )).size;
       
       return {
         weekNumber: index + 1,
         totalPnL,
         tradingDays,
-        totalTrades,
+        totalTrades: weekTrades.length,
         startDate: weekStart,
         endDate: weekEnd
       } as WeekSummary;
     });
-  }, [tradesByDay, currentMonth]);
+  }, [trades, currentMonth]);
 
   const getIntensityClass = (activity: DayActivity) => {
     if (activity.tradeCount === 0) return 'bg-slate-800/30 border-slate-700';
     
-    const isProfit = activity.totalPnL >= 0;
-    const intensity = Math.min(activity.tradeCount / 3, 1);
-    
-    if (isProfit) {
-      return intensity > 0.5 ? 'bg-emerald-600/40 border-emerald-500' : 'bg-emerald-600/20 border-emerald-600';
-    } else {
-      return intensity > 0.5 ? 'bg-red-600/40 border-red-500' : 'bg-red-600/20 border-red-600';
+    // Determine color based on P&L and win/loss status
+    if (activity.hasLoss && !activity.hasWin) {
+      // Pure loss day - red
+      const intensity = Math.min(activity.tradeCount / 3, 1);
+      return intensity > 0.5 ? 'bg-red-600/60 border-red-500' : 'bg-red-600/30 border-red-600';
+    } else if (activity.hasWin && !activity.hasLoss) {
+      // Pure win day - green
+      const intensity = Math.min(activity.tradeCount / 3, 1);
+      return intensity > 0.5 ? 'bg-emerald-600/60 border-emerald-500' : 'bg-emerald-600/30 border-emerald-600';
+    } else if (activity.hasWin && activity.hasLoss) {
+      // Mixed day - use net P&L
+      const isNetProfit = activity.totalPnL >= 0;
+      const intensity = Math.min(activity.tradeCount / 3, 1);
+      if (isNetProfit) {
+        return intensity > 0.5 ? 'bg-emerald-600/40 border-emerald-500' : 'bg-emerald-600/20 border-emerald-600';
+      } else {
+        return intensity > 0.5 ? 'bg-red-600/40 border-red-500' : 'bg-red-600/20 border-red-600';
+      }
     }
+    
+    // Open trades only
+    return 'bg-blue-600/30 border-blue-600';
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -130,7 +186,7 @@ export const ImprovedTradingCalendar = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="text-white flex items-center gap-2">
             <Calendar className="w-5 h-5 text-blue-400" />
-            Enhanced Trading Calendar
+            Trading Calendar
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button
@@ -154,98 +210,127 @@ export const ImprovedTradingCalendar = () => {
             </Button>
           </div>
         </div>
+        <div className="flex items-center gap-4 text-sm text-slate-400">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-emerald-500/60 rounded border border-emerald-400"></div>
+            <span>Profitable Days</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-500/60 rounded border border-red-400"></div>
+            <span>Loss Days</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-slate-700/30 rounded border border-slate-600"></div>
+            <span>No Trades</span>
+          </div>
+        </div>
       </CardHeader>
       
       <CardContent>
         <div className="grid grid-cols-8 gap-2">
-          {/* Day headers */}
+          {/* Headers */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Week'].map(day => (
             <div key={day} className="text-center text-sm text-slate-400 font-medium p-2 border-b border-slate-600">
               {day}
             </div>
           ))}
           
-          {/* Calendar rows */}
-          {weekSummaries.map((weekSummary, weekIndex) => (
-            <React.Fragment key={weekIndex}>
-              {/* Padding days for first week */}
-              {weekIndex === 0 && paddingDays.map(index => (
-                <div key={`padding-${index}`} className="h-24 border border-slate-700/50 rounded"></div>
-              ))}
-              
-              {/* Days of the week */}
-              {tradesByDay
-                .filter(activity => {
-                  const weekStart = startOfWeek(weekSummary.startDate);
-                  const weekEnd = endOfWeek(weekSummary.endDate);
-                  return activity.date >= weekStart && activity.date <= weekEnd;
-                })
-                .slice(0, 7)
-                .map(activity => (
-                  <div
-                    key={format(activity.date, 'yyyy-MM-dd')}
-                    className={`h-24 rounded border p-2 transition-all ${getIntensityClass(activity)}`}
-                  >
-                    <div className="flex flex-col h-full">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-white text-sm font-medium">
-                          {format(activity.date, 'd')}
+          {/* Calendar grid with weeks */}
+          {weekSummaries.map((weekSummary, weekIndex) => {
+            // Get days for this specific week
+            const weekStart = startOfWeek(weekSummary.startDate);
+            const weekEnd = endOfWeek(weekSummary.endDate);
+            const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+            
+            return (
+              <React.Fragment key={weekIndex}>
+                {/* Days of the week */}
+                {weekDays.map((day, dayIndex) => {
+                  const dayKey = format(day, 'yyyy-MM-dd');
+                  const activity = tradesByDay.find(a => format(a.date, 'yyyy-MM-dd') === dayKey);
+                  const isCurrentMonth = day >= startOfMonth(currentMonth) && day <= endOfMonth(currentMonth);
+                  
+                  if (!isCurrentMonth) {
+                    return <div key={dayIndex} className="h-24 border border-slate-700/20 rounded bg-slate-900/20"></div>;
+                  }
+                  
+                  if (!activity) {
+                    return (
+                      <div key={dayIndex} className="h-24 border border-slate-700 rounded bg-slate-800/30 p-2">
+                        <span className="text-slate-500 text-sm font-medium">
+                          {format(day, 'd')}
                         </span>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div
+                      key={dayIndex}
+                      className={`h-24 rounded border p-2 transition-all ${getIntensityClass(activity)}`}
+                    >
+                      <div className="flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-white text-sm font-medium">
+                            {format(activity.date, 'd')}
+                          </span>
+                          {activity.tradeCount > 0 && (
+                            <Badge variant="secondary" className="text-xs h-4 px-1">
+                              {activity.tradeCount}
+                            </Badge>
+                          )}
+                        </div>
+                        
                         {activity.tradeCount > 0 && (
-                          <Badge variant="secondary" className="text-xs h-4 px-1">
-                            {activity.tradeCount}
-                          </Badge>
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="w-3 h-3 text-slate-400" />
+                              <span className={`text-xs font-medium ${
+                                activity.totalPnL >= 0 ? 'text-emerald-400' : 'text-red-400'
+                              }`}>
+                                ${Math.abs(activity.totalPnL).toFixed(0)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Target className="w-3 h-3 text-slate-400" />
+                              <span className="text-xs text-slate-300">
+                                {activity.winRate.toFixed(0)}%
+                              </span>
+                            </div>
+                          </div>
                         )}
                       </div>
-                      
-                      {activity.tradeCount > 0 && (
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="w-3 h-3 text-slate-400" />
-                            <span className={`text-xs font-medium ${
-                              activity.totalPnL >= 0 ? 'text-emerald-400' : 'text-red-400'
-                            }`}>
-                              ${Math.abs(activity.totalPnL).toFixed(0)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Target className="w-3 h-3 text-slate-400" />
-                            <span className="text-xs text-slate-300">
-                              {activity.winRate.toFixed(0)}%
-                            </span>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                ))}
-              
-              {/* Week summary */}
-              <div className="h-24 bg-slate-700/30 border border-slate-600 rounded p-2">
-                <div className="flex flex-col h-full">
-                  <div className="text-center text-blue-400 text-sm font-medium mb-1">
-                    Week {weekSummary.weekNumber}
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-center gap-1">
-                      <DollarSign className="w-3 h-3 text-slate-400" />
-                      <span className={`text-xs font-medium ${
-                        weekSummary.totalPnL >= 0 ? 'text-emerald-400' : 'text-red-400'
-                      }`}>
-                        ${Math.abs(weekSummary.totalPnL).toFixed(0)}
-                      </span>
+                  );
+                })}
+                
+                {/* Week summary - properly aligned in the 8th column */}
+                <div className="h-24 bg-slate-700/30 border border-slate-600 rounded p-2">
+                  <div className="flex flex-col h-full">
+                    <div className="text-center text-blue-400 text-sm font-medium mb-1">
+                      W{weekSummary.weekNumber}
                     </div>
-                    <div className="text-center text-xs text-slate-300">
-                      {weekSummary.tradingDays} days
-                    </div>
-                    <div className="text-center text-xs text-slate-400">
-                      {weekSummary.totalTrades} trades
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-center gap-1">
+                        <DollarSign className="w-3 h-3 text-slate-400" />
+                        <span className={`text-xs font-medium ${
+                          weekSummary.totalPnL >= 0 ? 'text-emerald-400' : 'text-red-400'
+                        }`}>
+                          ${Math.abs(weekSummary.totalPnL).toFixed(0)}
+                        </span>
+                      </div>
+                      <div className="text-center text-xs text-slate-300">
+                        {weekSummary.tradingDays} days
+                      </div>
+                      <div className="text-center text-xs text-slate-400">
+                        {weekSummary.totalTrades} trades
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </React.Fragment>
-          ))}
+              </React.Fragment>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
