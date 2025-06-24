@@ -9,13 +9,16 @@ import { ChevronLeft, ChevronRight, Plus, TrendingUp, TrendingDown } from "lucid
 import { useTrades } from '@/hooks/useTrades';
 import { StreakTracker } from '@/components/StreakTracker';
 import { DailyTradeRecapModal } from '@/components/DailyTradeRecapModal';
-import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { EnhancedTradingCalendar } from '@/components/calendar/EnhancedTradingCalendar';
+import { format, isSameDay, startOfMonth, endOfMonth } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [isRecapModalOpen, setIsRecapModalOpen] = useState(false);
   const { trades, loading } = useTrades();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -57,6 +60,8 @@ const Calendar = () => {
     const closedTrades = dayTrades.filter(t => t.exit_price);
     const dailyPnL = closedTrades.reduce((sum, trade) => sum + calculatePnL(trade), 0);
     const isToday = isSameDay(date, new Date());
+    const hasLoss = closedTrades.some(t => calculatePnL(t) < 0);
+    const hasWin = closedTrades.some(t => calculatePnL(t) > 0);
     
     return (
       <div className="flex flex-col items-center gap-1">
@@ -65,7 +70,9 @@ const Calendar = () => {
         </div>
         {closedTrades.length > 0 && (
           <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${
-            dailyPnL >= 0 ? 'bg-emerald-400' : 'bg-red-400'
+            dailyPnL >= 0 
+              ? hasLoss ? 'bg-yellow-400' : 'bg-emerald-400' 
+              : 'bg-red-500'
           }`} />
         )}
         {isToday && (
@@ -95,7 +102,10 @@ const Calendar = () => {
             <h2 className="text-3xl font-bold text-white">Trading Calendar</h2>
             <p className="text-slate-400 mt-1">Track your daily trading activity and performance patterns</p>
           </div>
-          <Button className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+          <Button 
+            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => navigate('/add-trade')}
+          >
             <Plus className="w-4 h-4" />
             Add Trade
           </Button>
@@ -104,8 +114,11 @@ const Calendar = () => {
         {/* Streak Tracker */}
         <StreakTracker />
 
+        {/* Enhanced Trading Calendar */}
+        <EnhancedTradingCalendar />
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Enhanced Calendar */}
+          {/* Traditional Calendar */}
           <Card className="lg:col-span-2 bg-slate-800/50 border-slate-700 backdrop-blur-sm">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -119,8 +132,12 @@ const Calendar = () => {
                       <span className="text-slate-400">Profitable</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                       <span className="text-slate-400">Loss</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <span className="text-slate-400">Mixed</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
@@ -288,7 +305,13 @@ const Calendar = () => {
                     </div>
                     <div className="text-xs text-slate-400">Winners</div>
                   </div>
-                  <div className="text-center p-2 bg-slate-900/30 rounded col-span-2">
+                  <div className="text-center p-2 bg-slate-900/30 rounded">
+                    <div className="text-lg font-bold text-red-400">
+                      {monthTrades.filter(t => t.exit_price && calculatePnL(t) < 0).length}
+                    </div>
+                    <div className="text-xs text-slate-400">Losers</div>
+                  </div>
+                  <div className="text-center p-2 bg-slate-900/30 rounded">
                     <div className={`text-lg font-bold ${
                       monthTrades.reduce((sum, t) => sum + calculatePnL(t), 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
                     }`}>

@@ -10,7 +10,8 @@ const AddTrade = () => {
   const navigate = useNavigate();
 
   const handleFormSubmit = () => {
-    navigate('/trade-log');
+    // Navigate to trades page instead of non-existent trade-log
+    navigate('/trades');
   };
 
   const handleCancel = () => {
@@ -36,9 +37,12 @@ const AddTrade = () => {
               <p className="text-slate-400">Log a new trade with comprehensive details and analysis.</p>
             </div>
           </div>
-          <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
+          <Button 
+            className="gap-2 bg-blue-600 hover:bg-blue-700"
+            onClick={() => navigate('/trades')}
+          >
             <Plus className="w-4 h-4" />
-            Quick Add
+            View All Trades
           </Button>
         </div>
 

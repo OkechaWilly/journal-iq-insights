@@ -53,6 +53,8 @@ export const ImprovedTradeForm: React.FC<ImprovedTradeFormProps> = ({
 
   const handleSubmit = async (data: TradeFormValues) => {
     try {
+      console.log('Submitting trade data:', data);
+      
       await addTrade({
         symbol: data.symbol.toUpperCase(),
         direction: data.direction,
@@ -66,15 +68,21 @@ export const ImprovedTradeForm: React.FC<ImprovedTradeFormProps> = ({
       });
 
       toast({
-        title: "Trade Added",
-        description: "Your trade has been successfully logged.",
+        title: "Trade Added Successfully",
+        description: `${data.symbol.toUpperCase()} ${data.direction} trade has been logged.`,
       });
 
       form.reset();
-      onSubmit?.();
+      
+      // Call the onSubmit callback after successful save
+      if (onSubmit) {
+        console.log('Calling onSubmit callback');
+        onSubmit();
+      }
     } catch (error) {
+      console.error('Error saving trade:', error);
       toast({
-        title: "Error",
+        title: "Error Saving Trade",
         description: "Failed to save trade. Please try again.",
         variant: "destructive",
       });
