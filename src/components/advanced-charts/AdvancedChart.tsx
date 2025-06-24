@@ -116,10 +116,19 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
                 fontSize={12}
               />
               <YAxis 
+                yAxisId="price"
                 stroke="#9ca3af"
                 fontSize={12}
                 domain={['dataMin - 5', 'dataMax + 5']}
               />
+              {hasVolume && (
+                <YAxis 
+                  yAxisId="volume"
+                  orientation="right"
+                  stroke="#6b7280"
+                  fontSize={12}
+                />
+              )}
               <Tooltip 
                 contentStyle={{
                   backgroundColor: '#1f2937',
@@ -139,6 +148,7 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
                   dataKey="close"
                   shape={<CandlestickBar />}
                   fill="transparent"
+                  yAxisId="price"
                 />
               )}
               
@@ -149,6 +159,7 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
                   stroke="#3b82f6"
                   strokeWidth={2}
                   dot={false}
+                  yAxisId="price"
                 />
               )}
               
@@ -161,6 +172,7 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
                   strokeWidth={1}
                   dot={false}
                   connectNulls={false}
+                  yAxisId="price"
                 />
               ))}
               
