@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { getTrades, getTradeMetrics, createTrade, updateTrade, deleteTrade, logAuditEvent } from '@/lib/supabase';
+import { apiClient } from '@/lib/apiClient';
 import type { InstitutionalTrade, TradeMetrics } from '@/types/trade';
 
 // Export Trade as alias for InstitutionalTrade for backward compatibility
@@ -14,7 +14,7 @@ export const useTrades = () => {
 
   const fetchTrades = async () => {
     try {
-      const data = await getTrades();
+      const data = await apiClient.getTrades();
       setTrades(data);
     } catch (error) {
       console.error('Error fetching trades:', error);
@@ -28,7 +28,7 @@ export const useTrades = () => {
 
   const fetchMetrics = async () => {
     try {
-      const data = await getTradeMetrics();
+      const data = await apiClient.getMetrics();
       setMetrics(data);
     } catch (error) {
       console.error('Error fetching metrics:', error);
@@ -37,9 +37,7 @@ export const useTrades = () => {
 
   const addTrade = async (tradeData: Omit<InstitutionalTrade, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     try {
-      const newTrade = await createTrade(tradeData);
-      
-      await logAuditEvent('create', 'trade', newTrade.id, null, newTrade);
+      const newTrade = await apiClient.createTrade(tradeData);
       await fetchTrades();
       await fetchMetrics();
       
@@ -63,9 +61,7 @@ export const useTrades = () => {
   const updateTradeData = async (id: string, updates: Partial<InstitutionalTrade>) => {
     try {
       const oldTrade = trades.find(t => t.id === id);
-      const updatedTrade = await updateTrade(id, updates);
-      
-      await logAuditEvent('update', 'trade', id, oldTrade, updatedTrade);
+      const updatedTrade = await apiClient.updateTrade(id, updates);
       await fetchTrades();
       await fetchMetrics();
       
@@ -89,9 +85,7 @@ export const useTrades = () => {
   const deleteTradeData = async (id: string) => {
     try {
       const oldTrade = trades.find(t => t.id === id);
-      await deleteTrade(id);
-      
-      await logAuditEvent('delete', 'trade', id, oldTrade, null);
+      await apiClient.deleteTrade(id);
       await fetchTrades();
       await fetchMetrics();
       
