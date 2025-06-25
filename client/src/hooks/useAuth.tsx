@@ -1,82 +1,59 @@
 import { useState, useEffect } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-  username: string;
-}
-
-interface AuthError {
-  message: string;
-}
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session in localStorage
-    const savedUser = localStorage.getItem('trading_journal_user');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        localStorage.removeItem('trading_journal_user');
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // Mock authentication - in production, this would call your auth API
-    if (email && password) {
-      const user: User = {
-        id: 'user_123',
-        email,
-        username: email.split('@')[0]
-      };
-      
-      setUser(user);
-      localStorage.setItem('trading_journal_user', JSON.stringify(user));
-      
-      return { data: { user }, error: null };
-    }
-    
-    return { 
-      data: null, 
-      error: { message: 'Invalid email or password' } as AuthError 
-    };
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { data, error };
   };
 
   const signUp = async (email: string, password: string) => {
-    // Mock signup - in production, this would call your auth API
-    if (email && password) {
-      const user: User = {
-        id: `user_${Date.now()}`,
-        email,
-        username: email.split('@')[0]
-      };
-      
-      setUser(user);
-      localStorage.setItem('trading_journal_user', JSON.stringify(user));
-      
-      return { data: { user }, error: null };
-    }
-    
-    return { 
-      data: null, 
-      error: { message: 'Invalid email or password' } as AuthError 
-    };
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`
+      }
+    });
+    return { data, error };
   };
 
   const signOut = async () => {
-    setUser(null);
-    localStorage.removeItem('trading_journal_user');
-    return { error: null };
+    const { error } = await supabase.auth.signOut();
+    return { error };
   };
 
   return {
     user,
+    session,
     loading,
     signIn,
     signUp,

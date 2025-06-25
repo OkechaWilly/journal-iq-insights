@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-// Auth now uses local authentication without Supabase
+import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Mail, Lock, User, Chrome } from 'lucide-react';
 
 const Auth = () => {
@@ -112,12 +112,22 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      // Google OAuth not implemented in this demo version
-      toast({
-        title: "Feature Not Available",
-        description: "Google sign-in is not available in the demo version. Please use email/password.",
-        variant: "destructive"
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
       });
+      
+      if (error) {
+        toast({
+          title: "Google Sign In Failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Google sign in error:', error);
       toast({
         title: "Error",
         description: "Failed to sign in with Google",

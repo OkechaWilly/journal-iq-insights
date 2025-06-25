@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { apiClient } from '@/lib/apiClient';
+import { getAIInsights } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type { AIInsight, InstitutionalTrade } from '@/types/trade';
 
 export const useAIInsights = () => {
@@ -11,7 +12,7 @@ export const useAIInsights = () => {
 
   const fetchInsights = async () => {
     try {
-      const data = await apiClient.getAiInsights();
+      const data = await getAIInsights();
       setInsights(data);
     } catch (error) {
       console.error('Error fetching AI insights:', error);
@@ -39,7 +40,7 @@ export const useAIInsights = () => {
       const newInsights = [...patterns, ...risks, ...opportunities];
 
       for (const insight of newInsights) {
-        await apiClient.createAiInsight({
+        await supabase.from('ai_insights').insert({
           insight_type: insight.type,
           confidence_score: insight.confidence.toString(),
           title: insight.title,
