@@ -56,7 +56,7 @@ export const TradeLogGrouping: React.FC<TradeLogGroupingProps> = ({
           groupLabel = format(tradeDate, 'EEEE, MMMM do, yyyy');
           break;
         case 'week':
-          groupKey = format(tradeDate, 'yyyy-'ww');
+          groupKey = format(tradeDate, "yyyy-'W'ww");
           groupLabel = `Week of ${format(tradeDate, 'MMMM do, yyyy')}`;
           break;
         case 'month':
