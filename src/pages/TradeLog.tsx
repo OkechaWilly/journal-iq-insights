@@ -4,20 +4,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Download, Edit, Trash2, Eye, MoreHorizontal } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Search, Filter, Download, Plus, Calendar, Hash, BarChart3, TrendingUp } from "lucide-react";
 import { Layout } from '@/components/Layout';
 import { useTradesPaginated } from '@/hooks/useTradesPaginated';
 import { useTrades } from '@/hooks/useTrades';
 import { exportTradesToCSV } from '@/utils/csvExport';
-import { calculatePnL } from '@/utils/advancedAnalytics';
-import { format } from 'date-fns';
+import { TradeLogGrouping } from '@/components/tradelog/TradeLogGrouping';
+import { DetailedTradePanel } from '@/components/tradelog/DetailedTradePanel';
+import type { InstitutionalTrade } from '@/types/trade';
+import { useNavigate } from 'react-router-dom';
 
 const TradeLog = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [groupBy, setGroupBy] = useState<'day' | 'week' | 'month'>('day');
+  const [selectedTrade, setSelectedTrade] = useState<InstitutionalTrade | null>(null);
   const { deleteTrade } = useTrades();
+  const navigate = useNavigate();
   
   const { 
     trades, 
@@ -26,26 +31,27 @@ const TradeLog = () => {
     loadMore, 
     totalCount 
   } = useTradesPaginated({
-    pageSize: 25,
+    pageSize: 50,
     search: searchTerm,
     direction: filterType === "all" ? null : filterType
   });
 
-  const getPnLColor = (pnl: number) => {
-    return pnl >= 0 ? "text-emerald-400" : "text-red-400";
+  const handleTradeClick = (trade: InstitutionalTrade) => {
+    setSelectedTrade(trade);
   };
 
-  const getStatusBadge = (trade: any) => {
-    const isOpen = !trade.exit_price;
-    return isOpen ? 
-      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">Open</Badge> :
-      <Badge variant="outline" className="bg-slate-500/10 text-slate-400 border-slate-500/30">Closed</Badge>;
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this trade?')) {
-      await deleteTrade(id);
+  const handleDelete = async (trade: InstitutionalTrade) => {
+    if (window.confirm(`Are you sure you want to delete the ${trade.symbol} trade?`)) {
+      await deleteTrade(trade.id);
+      if (selectedTrade?.id === trade.id) {
+        setSelectedTrade(null);
+      }
     }
+  };
+
+  const handleEdit = (trade: InstitutionalTrade) => {
+    // Navigate to edit trade page
+    navigate(`/add-trade?edit=${trade.id}`);
   };
 
   const handleExport = () => {
@@ -69,157 +75,173 @@ const TradeLog = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold text-white">Trade Log</h2>
-            <p className="text-slate-400 mt-1">
-              Browse and review all your journaled trades ({totalCount} total). Filter, edit, or analyze past trades.
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-white">Professional Trade Log</h1>
+            <p className="text-slate-400">
+              Comprehensive trade analysis and management dashboard ({totalCount.toLocaleString()} total trades)
             </p>
           </div>
-          <Button 
-            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={handleExport}
-            disabled={trades.length === 0}
-          >
-            <Download className="w-4 h-4" />
-            Export ({trades.length})
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline"
+              className="gap-2 bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+              onClick={() => navigate('/add-trade')}
+            >
+              <Plus className="w-4 h-4" />
+              Add Trade
+            </Button>
+            <Button 
+              className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handleExport}
+              disabled={trades.length === 0}
+            >
+              <Download className="w-4 h-4" />
+              Export ({trades.length})
+            </Button>
+          </div>
         </div>
 
+        <Separator className="bg-slate-700" />
+
+        {/* Filters & Controls */}
         <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-white">Filter & Search</CardTitle>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
+            <CardTitle className="text-white flex items-center gap-2">
+              <Filter className="w-5 h-5 text-blue-400" />
+              Filters & Organization
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <Input
                   placeholder="Search by symbol..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                  className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500"
                 />
               </div>
+              
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-full sm:w-48 bg-slate-700 border-slate-600 text-white">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Filter by direction" />
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white focus:border-blue-500">
+                  <SelectValue placeholder="Direction" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-600">
                   <SelectItem value="all" className="text-white hover:bg-slate-700">All Directions</SelectItem>
-                  <SelectItem value="long" className="text-white hover:bg-slate-700">Long</SelectItem>
-                  <SelectItem value="short" className="text-white hover:bg-slate-700">Short</SelectItem>
+                  <SelectItem value="long" className="text-white hover:bg-slate-700">Long Only</SelectItem>
+                  <SelectItem value="short" className="text-white hover:bg-slate-700">Short Only</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border border-slate-700">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-slate-700">
-                    <TableHead className="text-slate-300">Date</TableHead>
-                    <TableHead className="text-slate-300">Symbol</TableHead>
-                    <TableHead className="text-slate-300">Direction</TableHead>
-                    <TableHead className="text-slate-300">Quantity</TableHead>
-                    <TableHead className="text-slate-300">Entry</TableHead>
-                    <TableHead className="text-slate-300">Exit</TableHead>
-                    <TableHead className="text-slate-300">P&L</TableHead>
-                    <TableHead className="text-slate-300">Status</TableHead>
-                    <TableHead className="text-slate-300">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {trades.map((trade) => {
-                    const pnl = calculatePnL(trade);
-                    return (
-                      <TableRow key={trade.id} className="border-slate-700 hover:bg-slate-800/30">
-                        <TableCell className="font-medium text-white">
-                          {format(new Date(trade.created_at), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell className="font-semibold text-white">{trade.symbol}</TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={trade.direction === "long" ? "default" : "secondary"} 
-                            className={trade.direction === "long" ? 
-                              "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" : 
-                              "bg-red-500/10 text-red-400 border-red-500/30"
-                            }
-                          >
-                            {trade.direction.toUpperCase()}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-white">{trade.quantity}</TableCell>
-                        <TableCell className="text-white">${Number(trade.entry_price).toFixed(2)}</TableCell>
-                        <TableCell className="text-white">
-                          {trade.exit_price ? `$${Number(trade.exit_price).toFixed(2)}` : "-"}
-                        </TableCell>
-                        <TableCell className={`font-semibold ${getPnLColor(pnl)}`}>
-                          ${pnl.toFixed(2)}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(trade)}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            {trade.screenshot_url && (
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="h-8 w-8 p-0 border-slate-600 hover:bg-slate-700"
-                                onClick={() => window.open(trade.screenshot_url, '_blank')}
-                              >
-                                <Eye className="w-3 h-3 text-slate-400" />
-                              </Button>
-                            )}
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-8 w-8 p-0 border-slate-600 hover:bg-slate-700"
-                            >
-                              <Edit className="w-3 h-3 text-slate-400" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-8 w-8 p-0 border-red-600 hover:bg-red-600/10 text-red-400"
-                              onClick={() => handleDelete(trade.id)}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
               
-              {trades.length === 0 && !loading && (
-                <div className="text-center py-8 text-slate-400">
-                  No trades found. Add your first trade to get started!
-                </div>
-              )}
-              
-              {hasMore && (
-                <div className="p-4 text-center border-t border-slate-700">
-                  <Button 
-                    variant="outline" 
-                    onClick={loadMore}
-                    disabled={loading}
-                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-                  >
-                    {loading ? (
-                      <>
-                        <MoreHorizontal className="w-4 h-4 mr-2 animate-pulse" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load More Trades'
-                    )}
-                  </Button>
-                </div>
-              )}
+              <Select value={groupBy} onValueChange={(value: 'day' | 'week' | 'month') => setGroupBy(value)}>
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white focus:border-blue-500">
+                  <SelectValue placeholder="Group by" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-600">
+                  <SelectItem value="day" className="text-white hover:bg-slate-700">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      By Day
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="week" className="text-white hover:bg-slate-700">
+                    <div className="flex items-center gap-2">
+                      <Hash className="w-4 h-4" />
+                      By Week
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="month" className="text-white hover:bg-slate-700">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      By Month
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  {trades.filter(t => t.exit_price && (t.direction === 'long' ? t.exit_price > t.entry_price : t.exit_price < t.entry_price)).length} Winners
+                </Badge>
+                <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30">
+                  {trades.filter(t => t.exit_price && (t.direction === 'long' ? t.exit_price < t.entry_price : t.exit_price > t.entry_price)).length} Losers
+                </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Trade List */}
+          <div className="lg:col-span-2 space-y-4">
+            {trades.length === 0 && !loading ? (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <BarChart3 className="w-16 h-16 text-slate-400 mb-4" />
+                  <h3 className="text-white text-lg font-semibold mb-2">No trades found</h3>
+                  <p className="text-slate-400 mb-4">Start building your trading history by adding your first trade.</p>
+                  <Button onClick={() => navigate('/add-trade')} className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Your First Trade
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <TradeLogGrouping
+                trades={trades}
+                groupBy={groupBy}
+                onTradeClick={handleTradeClick}
+                selectedTrade={selectedTrade}
+              />
+            )}
+            
+            {hasMore && (
+              <div className="flex justify-center pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={loadMore}
+                  disabled={loading}
+                  className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                >
+                  {loading ? (
+                    'Loading...'
+                  ) : (
+                    'Load More Trades'
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Detailed Trade Panel */}
+          <div className="lg:col-span-1">
+            {selectedTrade ? (
+              <div className="sticky top-6">
+                <DetailedTradePanel
+                  trade={selectedTrade}
+                  onEdit={() => handleEdit(selectedTrade)}
+                  onDelete={() => handleDelete(selectedTrade)}
+                  onClose={() => setSelectedTrade(null)}
+                />
+              </div>
+            ) : (
+              <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <BarChart3 className="w-12 h-12 text-slate-400 mb-4" />
+                  <h3 className="text-white text-lg font-semibold mb-2">Select a Trade</h3>
+                  <p className="text-slate-400 text-sm">
+                    Click on any trade from the list to view detailed information, notes, and screenshots.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </div>
     </Layout>
   );
