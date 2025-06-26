@@ -23,11 +23,11 @@ export const getTradeMetrics = async (): Promise<TradeMetrics | null> => {
   }
 
   return data ? {
-    totalTrades: data.total_trades,
-    winningTrades: data.winning_trades,
-    totalPnL: parseFloat(data.total_pnl),
-    averagePnL: parseFloat(data.avg_pnl),
-    winRate: data.total_trades > 0 ? (data.winning_trades / data.total_trades) * 100 : 0
+    total_trades: data.total_trades || 0,
+    winning_trades: data.winning_trades || 0,
+    total_pnl: parseFloat(data.total_pnl || '0'),
+    avg_risk_reward: parseFloat(data.avg_risk_reward || '0'),
+    win_rate: data.total_trades > 0 ? (data.winning_trades / data.total_trades) * 100 : 0
   } : null;
 };
 
@@ -39,16 +39,20 @@ export const getRiskMetrics = async (): Promise<RiskMetric[]> => {
 
   if (error) throw error;
   return data?.map(item => ({
+    id: item.id,
+    user_id: item.user_id,
+    calc_date: item.calc_date,
     var_95: item.var_95 ?? undefined,
     expected_shortfall: item.expected_shortfall ?? undefined,
     risk_of_ruin: item.risk_of_ruin ?? undefined,
     sharpe_ratio: item.sharpe_ratio ?? undefined,
     sortino_ratio: item.sortino_ratio ?? undefined,
     max_drawdown: item.max_drawdown ?? undefined,
+    volatility: item.volatility ?? undefined,
     beta: item.beta ?? undefined,
     alpha: item.alpha ?? undefined,
-    volatility: item.volatility ?? undefined,
-    calc_date: item.calc_date
+    created_at: item.created_at,
+    updated_at: item.updated_at
   })) || [];
 };
 

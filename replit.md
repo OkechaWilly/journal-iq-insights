@@ -123,6 +123,11 @@ This is a full-stack trading journal application built with a modern React front
 
 ## Changelog
 
+- June 26, 2025. Successfully migrated from Lovable to Replit with full Supabase integration
+  - Restored Supabase authentication with email/password and Google OAuth
+  - Updated all hooks to use Supabase functions instead of API client
+  - Fixed MetricsCards component data structure compatibility
+  - Verified all functionality working correctly
 - June 25, 2025. Initial setup
 
 ## User Preferences
