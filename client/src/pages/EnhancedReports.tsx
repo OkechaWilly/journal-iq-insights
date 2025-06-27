@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTrades } from '@/hooks/useTrades';
 import { useMonthlyPerformance } from '@/hooks/useMonthlyPerformance';
-import { BarChart3, TrendingUp, Brain, Template, FileText, Download } from 'lucide-react';
+import { BarChart3, TrendingUp, Brain, Clipboard, FileText, Download } from 'lucide-react';
 
 const EnhancedReports = () => {
   const { trades } = useTrades();
@@ -95,7 +95,7 @@ const EnhancedReports = () => {
                     value="templates" 
                     className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-slate-400 transition-all"
                   >
-                    <Template className="w-4 h-4 mr-2" />
+                    <Clipboard className="w-4 h-4 mr-2" />
                     Templates
                   </TabsTrigger>
                   <TabsTrigger 
@@ -152,7 +152,7 @@ const EnhancedReports = () => {
                   <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
                     <CardHeader>
                       <CardTitle className="text-white flex items-center gap-2">
-                        <Template className="w-5 h-5 text-purple-400" />
+                        <Clipboard className="w-5 h-5 text-purple-400" />
                         Trade Templates
                       </CardTitle>
                     </CardHeader>
@@ -246,7 +246,7 @@ const EnhancedReports = () => {
                   <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
                     <CardHeader>
                       <CardTitle className="text-white flex items-center gap-2">
-                        <Template className="w-5 h-5 text-purple-400" />
+                        <Clipboard className="w-5 h-5 text-purple-400" />
                         Trade Templates
                       </CardTitle>
                     </CardHeader>
