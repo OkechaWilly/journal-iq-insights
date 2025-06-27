@@ -6,98 +6,186 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Light Mode - JournalIQ Theme */
+    --background: 220 13% 98%; /* #F9FAFB */
+    --foreground: 220 26% 14%; /* #111827 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 220 26% 14%; /* #111827 */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 26% 14%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 238 69% 58%; /* #4F46E5 */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 26% 14%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%; /* #6B7280 */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 26% 14%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 74% 52%; /* #DC2626 */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --success: 158 64% 41%; /* #059669 */
+    --success-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 238 69% 58%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 26% 14%;
+    --sidebar-primary: 238 69% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 26% 14%;
     --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 238 69% 58%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark Mode - JournalIQ Theme */
+    --background: 222 84% 5%; /* #0F172A */
+    --foreground: 210 40% 98%; /* #F8FAFC */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 215 28% 17%; /* #1F2937 */
+    --card-foreground: 210 40% 98%; /* #F8FAFC */
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 215 28% 17%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 239 68% 68%; /* #6366F1 */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217 32% 18%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217 32% 18%;
+    --muted-foreground: 215 20% 55%; /* #64748B */
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 217 32% 18%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84% 60%; /* #EF4444 */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --success: 158 64% 52%; /* #10B981 */
+    --success-foreground: 210 40% 98%;
+
+    --border: 217 32% 18%;
+    --input: 217 32% 18%;
+    --ring: 239 68% 68%;
+    
+    --sidebar-background: 222 84% 5%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 239 68% 68%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 217 32% 18%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 32% 18%;
+    --sidebar-ring: 239 68% 68%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border transition-colors duration-300;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+
+  /* Smooth transitions for theme switching */
+  html {
+    transition: color-scheme 0.3s ease;
+  }
+
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+
+  /* Dark mode scrollbar */
+  .dark ::-webkit-scrollbar-track {
+    @apply bg-slate-900;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-slate-600 rounded-full;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-500;
+  }
+
+  /* Profit/Loss color utilities */
+  .text-profit {
+    @apply text-green-600 dark:text-green-400;
+  }
+
+  .text-loss {
+    @apply text-red-600 dark:text-red-400;
+  }
+
+  .bg-profit {
+    @apply bg-green-600 dark:bg-green-500;
+  }
+
+  .bg-loss {
+    @apply bg-red-600 dark:bg-red-500;
+  }
+
+  /* Icon stroke adjustments for theme consistency */
+  .icon-stroke {
+    @apply text-slate-600 dark:text-slate-300;
+  }
+
+  /* Enhanced card shadows for both themes */
+  .card-shadow {
+    @apply shadow-sm dark:shadow-slate-900/20;
+  }
+
+  .card-shadow-lg {
+    @apply shadow-lg dark:shadow-slate-900/40;
+  }
+
+  /* Smooth animations for interactive elements */
+  .interactive-element {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .interactive-element:hover {
+    @apply scale-[1.02] shadow-md;
+  }
+
+  /* Theme-aware borders */
+  .theme-border {
+    @apply border-slate-200 dark:border-slate-700;
+  }
+
+  /* Enhanced focus states */
+  .focus-ring {
+    @apply focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 }

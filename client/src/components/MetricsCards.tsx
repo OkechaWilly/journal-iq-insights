@@ -72,19 +72,19 @@ export const MetricsCards = ({ metrics }: MetricsCardsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {metricsData.map((metric) => (
-        <Card key={metric.title} className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-all duration-200">
+        <Card key={metric.title} className="bg-card border-border hover:bg-card/80 transition-all duration-300 card-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-300">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               {metric.title}
             </CardTitle>
-            <metric.icon className="h-4 w-4 text-slate-400" />
+            <metric.icon className="h-4 w-4 icon-stroke" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{metric.value}</div>
-            <p className={`text-xs mt-1 ${
-              metric.changeType === 'positive' ? 'text-emerald-400' :
-              metric.changeType === 'negative' ? 'text-red-400' :
-              'text-slate-400'
+            <div className="text-2xl font-bold text-card-foreground">{metric.value}</div>
+            <p className={`text-xs mt-1 transition-colors duration-300 ${
+              metric.changeType === 'positive' ? 'text-profit' :
+              metric.changeType === 'negative' ? 'text-loss' :
+              'text-muted-foreground'
             }`}>
               {metric.change}
             </p>

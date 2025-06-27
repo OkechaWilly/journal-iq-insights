@@ -4,6 +4,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { format } from 'date-fns';
 import { useMonthlyPerformance } from '@/hooks/useMonthlyPerformance';
+import { useChartTheme } from '@/hooks/useChartTheme';
 import type { InstitutionalTrade } from '@/types/trade';
 
 interface PerformanceChartProps {
@@ -19,13 +20,14 @@ const chartConfig = {
 
 export const PerformanceChart = ({ trades }: PerformanceChartProps) => {
   const { monthlyData, loading } = useMonthlyPerformance();
+  const { theme, colors } = useChartTheme();
 
   if (loading) {
     return (
-      <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
+      <Card className="bg-card border-border card-shadow transition-colors duration-300">
         <CardHeader>
-          <CardTitle className="text-white">Performance Chart</CardTitle>
-          <CardDescription className="text-slate-400">Loading performance data...</CardDescription>
+          <CardTitle className="text-card-foreground">Performance Chart</CardTitle>
+          <CardDescription className="text-muted-foreground">Loading performance data...</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[300px] bg-slate-900/30 rounded-lg animate-pulse" />
@@ -58,10 +60,10 @@ export const PerformanceChart = ({ trades }: PerformanceChartProps) => {
   const isPositive = cumulativePnL >= 0;
 
   return (
-    <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
+    <Card className="bg-card border-border card-shadow transition-colors duration-300">
       <CardHeader>
-        <CardTitle className="text-white">Cumulative Performance</CardTitle>
-        <CardDescription className="text-slate-400">
+        <CardTitle className="text-card-foreground">Cumulative Performance</CardTitle>
+        <CardDescription className="text-muted-foreground">
           Monthly P&L progression over time
         </CardDescription>
       </CardHeader>
@@ -69,14 +71,14 @@ export const PerformanceChart = ({ trades }: PerformanceChartProps) => {
         <div className="mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-400 text-sm">Total P&L</p>
-              <p className={`text-2xl font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+              <p className="text-muted-foreground text-sm">Total P&L</p>
+              <p className={`text-2xl font-bold ${isPositive ? 'text-profit' : 'text-loss'}`}>
                 ${cumulativePnL.toFixed(2)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-slate-400 text-sm">Total Months</p>
-              <p className="text-white text-xl font-semibold">{chartData.length}</p>
+              <p className="text-muted-foreground text-sm">Total Months</p>
+              <p className="text-card-foreground text-xl font-semibold">{chartData.length}</p>
             </div>
           </div>
         </div>

@@ -14,7 +14,7 @@ export const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-white">Loading dashboard...</div>
+        <div className="text-foreground">Loading dashboard...</div>
       </div>
     );
   }
@@ -25,8 +25,8 @@ export const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-white">Dashboard</h2>
-          <p className="text-slate-400">Your trading performance overview</p>
+          <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
+          <p className="text-muted-foreground">Your trading performance overview</p>
         </div>
         <QuickActions />
       </div>
